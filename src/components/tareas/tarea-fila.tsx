@@ -16,6 +16,7 @@ import {
   CalendarClock,
   Trash2,
   User,
+  History,
   type LucideIcon,
 } from "lucide-react"
 import type { TareaConRelaciones } from "@/lib/database.types"
@@ -54,11 +55,14 @@ export function TareaFila({
   tarea,
   onChange,
   onRemove,
+  onOpenContexto,
   showFecha = true,
 }: {
   tarea: TareaConRelaciones
   onChange?: (t: TareaConRelaciones) => void
   onRemove?: (id: string) => void
+  /** Si se pasa y la tarea tiene cliente, muestra un botón para ver su contexto. */
+  onOpenContexto?: (t: TareaConRelaciones) => void
   showFecha?: boolean
 }) {
   const [pending, setPending] = React.useState(false)
@@ -165,6 +169,16 @@ export function TareaFila({
               <User className="size-3" />
               {tarea.cliente.nombre} {tarea.cliente.apellidos}
             </Link>
+          )}
+          {onOpenContexto && tarea.cliente && !completada && (
+            <button
+              type="button"
+              onClick={() => onOpenContexto(tarea)}
+              className="text-primary hover:text-primary/80 flex items-center gap-1 text-xs font-medium"
+            >
+              <History className="size-3" />
+              Contexto
+            </button>
           )}
         </div>
       </div>
