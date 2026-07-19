@@ -117,6 +117,15 @@ export type Database = {
       generar_tareas_renovacion: { Args: Record<string, never>; Returns: number }
       generar_tareas_cumpleanos: { Args: Record<string, never>; Returns: number }
       marcar_polizas_vencidas: { Args: Record<string, never>; Returns: number }
+      run_daily_jobs: {
+        Args: Record<string, never>
+        Returns: {
+          polizas_vencidas: number
+          tareas_renovacion: number
+          tareas_cumpleanos: number
+          ejecutado_at: string
+        }
+      }
     }
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>
