@@ -12,12 +12,15 @@ import type {
   CategoriaDocumento,
 } from "@/lib/constants"
 
-export interface Cobertura {
+export type Cobertura = {
   nombre: string
   capital: string
   franquicia: string
 }
 
+// NOTA: los tipos de fila DEBEN ser `type` (no `interface`). supabase-js exige
+// que Row sea asignable a Record<string, unknown>, y solo los `type` alias
+// tienen index signature implícita.
 type Timestamps = {
   id: string
   user_id: string
@@ -25,7 +28,7 @@ type Timestamps = {
   updated_at: string
 }
 
-export interface ClienteRow extends Timestamps {
+export type ClienteRow = Timestamps & {
   nombre: string
   apellidos: string
   dni_nie: string | null
@@ -44,7 +47,7 @@ export interface ClienteRow extends Timestamps {
   origen: string | null
 }
 
-export interface PolizaRow extends Timestamps {
+export type PolizaRow = Timestamps & {
   cliente_id: string
   compania: string
   numero_poliza: string
@@ -61,7 +64,7 @@ export interface PolizaRow extends Timestamps {
   estado: EstadoPoliza
 }
 
-export interface InteraccionRow extends Timestamps {
+export type InteraccionRow = Timestamps & {
   cliente_id: string
   poliza_id: string | null
   tipo: TipoInteraccion
@@ -70,7 +73,7 @@ export interface InteraccionRow extends Timestamps {
   fecha: string
 }
 
-export interface TareaRow extends Timestamps {
+export type TareaRow = Timestamps & {
   cliente_id: string | null
   poliza_id: string | null
   tipo: TipoTarea
@@ -83,7 +86,7 @@ export interface TareaRow extends Timestamps {
   completada_at: string | null
 }
 
-export interface DocumentoRow extends Timestamps {
+export type DocumentoRow = Timestamps & {
   cliente_id: string
   poliza_id: string | null
   categoria: CategoriaDocumento
@@ -100,7 +103,7 @@ type TableConfig<Row> = {
   Relationships: []
 }
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       clientes: TableConfig<ClienteRow>
