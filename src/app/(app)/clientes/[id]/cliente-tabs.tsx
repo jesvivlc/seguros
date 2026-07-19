@@ -1,7 +1,8 @@
 "use client"
 
+import * as React from "react"
 import Link from "next/link"
-import { Plus, FileText } from "lucide-react"
+import { Plus, FileText, MessageSquarePlus } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Table,
@@ -55,9 +56,29 @@ export function ClienteTabs({
   documentos: DocumentoRow[]
 }) {
   const vigentes = polizas.filter((p) => p.estado === "vigente").length
+  const [tab, setTab] = React.useState("datos")
+
+  function irANuevaInteraccion() {
+    setTab("timeline")
+    // Espera al render del panel antes de enfocar el formulario.
+    setTimeout(() => {
+      const el = document.getElementById("nueva-interaccion")
+      el?.scrollIntoView({ behavior: "smooth", block: "center" })
+      el?.querySelector("input")?.focus()
+    }, 80)
+  }
 
   return (
-    <Tabs defaultValue="datos" className="w-full">
+    <Tabs value={tab} onValueChange={setTab} className="w-full">
+      {/* Botón flotante "+ Interacción" siempre visible en la ficha */}
+      <Button
+        onClick={irANuevaInteraccion}
+        className="fixed right-5 bottom-5 z-40 shadow-lg"
+      >
+        <MessageSquarePlus className="size-4" />
+        <span className="hidden sm:inline">Interacción</span>
+      </Button>
+
       <TabsList className="w-full justify-start overflow-x-auto">
         <TabsTrigger value="datos">Datos</TabsTrigger>
         <TabsTrigger value="polizas">
