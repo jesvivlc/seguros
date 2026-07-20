@@ -3,9 +3,9 @@
 import * as React from "react"
 import { toast } from "sonner"
 import { Loader2, Mail, CheckCircle2 } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { enviarRecuperacion } from "./actions"
 
 export function RecuperarClient() {
   const [email, setEmail] = React.useState("")
@@ -18,15 +18,8 @@ export function RecuperarClient() {
       return
     }
     setPending(true)
-    const supabase = createClient()
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/auth/callback?next=/auth/actualizar`,
-    })
+    await enviarRecuperacion(email.trim())
     setPending(false)
-    if (error) {
-      toast.error("No se pudo enviar el email. Inténtalo de nuevo.")
-      return
-    }
     setEnviado(true)
   }
 
