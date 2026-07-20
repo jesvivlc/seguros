@@ -20,6 +20,7 @@ import { InteraccionesTab } from "./interacciones-tab"
 import { TareasTab } from "./tareas-tab"
 import { DocumentosTab } from "./documentos-tab"
 import { SiniestrosTab } from "./siniestros-tab"
+import { PortalTab, type AccesoPortal } from "./portal-tab"
 import { TIPO_POLIZA_LABEL } from "@/lib/constants"
 import { formatEuros, formatFecha } from "@/lib/format"
 import type { ClienteFormInput } from "@/lib/schemas/cliente"
@@ -51,6 +52,8 @@ export function ClienteTabs({
   tareas,
   documentos,
   siniestros,
+  portalAcceso,
+  clienteEmail,
 }: {
   clienteId: string
   correduriaId: string
@@ -60,6 +63,8 @@ export function ClienteTabs({
   tareas: TareaConRelaciones[]
   documentos: DocumentoRow[]
   siniestros: SiniestroConRelaciones[]
+  portalAcceso: AccesoPortal | null
+  clienteEmail?: string
 }) {
   const vigentes = polizas.filter((p) => p.estado === "vigente").length
   const [tab, setTab] = React.useState("datos")
@@ -113,6 +118,7 @@ export function ClienteTabs({
           )}
         </TabsTrigger>
         <TabsTrigger value="tareas">Tareas</TabsTrigger>
+        <TabsTrigger value="portal">Portal</TabsTrigger>
       </TabsList>
 
       {/* DATOS */}
@@ -239,6 +245,15 @@ export function ClienteTabs({
       {/* TAREAS */}
       <TabsContent value="tareas" className="mt-4">
         <TareasTab clienteId={clienteId} tareas={tareas} />
+      </TabsContent>
+
+      {/* PORTAL */}
+      <TabsContent value="portal" className="mt-4">
+        <PortalTab
+          clienteId={clienteId}
+          acceso={portalAcceso}
+          defaultEmail={clienteEmail}
+        />
       </TabsContent>
     </Tabs>
   )

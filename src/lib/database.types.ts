@@ -138,6 +138,14 @@ export type PerfilRow = {
   updated_at: string
 }
 
+export type PortalAccesoRow = {
+  user_id: string
+  cliente_id: string
+  activo: boolean
+  created_at: string
+  updated_at: string
+}
+
 type TableConfig<Row> = {
   Row: Row
   Insert: Partial<Row>
@@ -156,6 +164,7 @@ export type Database = {
       siniestros: TableConfig<SiniestroRow>
       corredurias: TableConfig<CorreduriaRow>
       perfiles: TableConfig<PerfilRow>
+      portal_accesos: TableConfig<PortalAccesoRow>
     }
     Views: Record<string, never>
     Functions: {
@@ -178,6 +187,7 @@ export type Database = {
         Args: Record<string, never>
         Returns: Visibilidad | null
       }
+      mi_cliente_portal: { Args: Record<string, never>; Returns: string | null }
     }
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>

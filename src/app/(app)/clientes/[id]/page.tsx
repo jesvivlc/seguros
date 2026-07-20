@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft, Phone, Mail, MapPin, Cake } from "lucide-react"
 import { requireUser } from "@/lib/auth"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { Button } from "@/components/ui/button"
 import { EstadoClienteBadge } from "@/components/badges"
 import { EliminarClienteButton } from "./eliminar-cliente-button"
@@ -75,6 +76,19 @@ export default async function ClienteDetallePage({
   const tareas = (tareasData ?? []) as unknown as TareaConRelaciones[]
   const documentos = (docsData ?? []) as DocumentoRow[]
   const siniestros = (siniestrosData ?? []) as unknown as SiniestroConRelaciones[]
+
+  // Acceso al portal del cliente (si existe): email vía admin API.
+  const { data: portalRow } = await supabase
+    .from("portal_accesos")
+    .select("user_id")
+    .eq("cliente_id", id)
+    .maybeSingle()
+  let portalAcceso: { userId: string; email: string } | null = null
+  if (portalRow) {
+    const admin = createAdminClient()
+    const { data: u } = await admin.auth.admin.getUserById(portalRow.user_id)
+    portalAcceso = { userId: portalRow.user_id, email: u.user?.email ?? "—" }
+  }
 
   const formDefaults: Partial<ClienteFormInput> = {
     nombre: c.nombre,
@@ -164,6 +178,8 @@ export default async function ClienteDetallePage({
         tareas={tareas}
         documentos={documentos}
         siniestros={siniestros}
+        portalAcceso={portalAcceso}
+        clienteEmail={c.email ?? undefined}
       />
     </div>
   )
