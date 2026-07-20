@@ -1,7 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { Menu, Search, LogOut, Umbrella } from "lucide-react"
+import Link from "next/link"
+import { Menu, Search, LogOut, Umbrella, UserRound } from "lucide-react"
 import { logout } from "@/app/login/actions"
 import { SidebarNav } from "./sidebar-nav"
 import { Button } from "@/components/ui/button"
@@ -105,6 +106,10 @@ export function Topbar({
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel className="truncate">{email}</DropdownMenuLabel>
           <DropdownMenuSeparator />
+          <DropdownMenuItem render={<Link href="/cuenta" />}>
+            <UserRound className="size-4" />
+            Mi cuenta
+          </DropdownMenuItem>
           <DropdownMenuItem
             variant="destructive"
             onClick={() => {

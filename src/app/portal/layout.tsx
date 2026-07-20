@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { Umbrella } from "lucide-react"
 import { requirePortal } from "@/lib/auth"
 import { logout } from "@/app/login/actions"
@@ -27,6 +28,9 @@ export default async function PortalLayout({
         <span className="text-muted-foreground hidden text-sm sm:inline">
           {cli ? `${cli.nombre} ${cli.apellidos}` : ""}
         </span>
+        <Link href="/cuenta" className="text-muted-foreground text-sm hover:underline">
+          Mi cuenta
+        </Link>
         <form action={logout}>
           <button className="text-muted-foreground text-sm hover:underline">
             Salir

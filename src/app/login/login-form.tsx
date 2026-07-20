@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useActionState } from "react"
 import { Loader2, ShieldCheck } from "lucide-react"
 import { login, type LoginState } from "./actions"
@@ -30,7 +31,15 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor="password">Contraseña</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="password">Contraseña</Label>
+          <Link
+            href="/auth/recuperar"
+            className="text-muted-foreground text-xs hover:underline"
+          >
+            ¿Olvidaste tu contraseña?
+          </Link>
+        </div>
         <Input
           id="password"
           name="password"
