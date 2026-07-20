@@ -167,12 +167,32 @@ uno solo ve lo suyo. Bórralos antes de producción real (junto con el resto de 
   **próximas renovaciones** destacadas, y puede **subir documentos** a su carpeta
   (migración `0009`; se atribuyen al agente propietario para que la correduría los vea).
   Aislamiento reverificado con `scripts/verify-portal.mjs` (10/10).
+- ✅ **Emails con Resend** (`src/lib/email.ts`; dominio `didactia.eu` verificado):
+  - **Recordatorios de renovación** al cliente a **30 y 7 días** del vencimiento
+    (desde el cron diario). Verificado end-to-end (enviados:1).
+  - **Alerta de fallo del cron** por email a `ALERT_EMAIL` si `run_daily_jobs` falla.
+  - **Reset de contraseña por Resend**: genera el enlace con la admin API y lo envía
+    (no depende del SMTP de Supabase). Verificado que genera el enlace.
+  - ⚠️ **Config pendiente**: añadir `https://seguros-crm-three.vercel.app/auth/callback`
+    (o `/**`) a **Redirect URLs** en Supabase → Auth → URL Configuration, para que el
+    enlace del reset redirija a la app y no al Site URL.
+  - Nota: los recordatorios se envían cuando faltan EXACTAMENTE 30 o 7 días; si el cron
+    se salta un día, esa póliza se pierde ese recordatorio (MVP sin tabla de control).
+
+## n8n (del ROADMAP) — qué queda realmente
+Con Resend, todo lo que era **enviar email** ya es **nativo** (en el stack, como pide la
+regla del ROADMAP), sin n8n. Solo seguiría siendo n8n / servicio externo:
+- **Entrada de documentos por email** (leer bandeja IMAP → crear interacción/subir doc):
+  Resend envía, no recibe. Pendiente (n8n + IMAP, o un servicio con inbound-parse).
+- **WhatsApp**: bloqueo legal, aparcado.
+- **Backup de BBDD**: Supabase ya hace backups; un `pg_dump` propio sería una GitHub
+  Action programada, no n8n.
 
 ## Claves API en el chat — ROTAR
 Durante el desarrollo se pegaron en el chat: el token de Supabase (`sbp_…`, usado para
-aplicar migraciones) y la `ANTHROPIC_API_KEY`. Ambas funcionan y están guardadas de
-forma segura (Vercel / `.env.local`, fuera del repo), pero **conviene rotarlas** en sus
-paneles respectivos por haber pasado por texto plano.
+aplicar migraciones), la `ANTHROPIC_API_KEY` y la `RESEND_API_KEY`. Todas funcionan y
+están guardadas de forma segura (Vercel / `.env.local`, fuera del repo), pero **conviene
+rotarlas** en sus paneles respectivos por haber pasado por texto plano.
 
 ## Aplicar migraciones sin pasos manuales
 Existe `scripts/apply-migration.mjs`: aplica un `.sql` vía la Management API de
