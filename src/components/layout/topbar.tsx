@@ -26,7 +26,15 @@ function abrirBuscador() {
   document.dispatchEvent(new CustomEvent("crm:abrir-buscador"))
 }
 
-export function Topbar({ email }: { email: string }) {
+export function Topbar({
+  email,
+  esAdmin = false,
+  correduriaNombre = "CRM Seguros",
+}: {
+  email: string
+  esAdmin?: boolean
+  correduriaNombre?: string
+}) {
   const [openSheet, setOpenSheet] = React.useState(false)
   const inicial = email.charAt(0).toUpperCase()
 
@@ -52,11 +60,11 @@ export function Topbar({ email }: { email: string }) {
               <span className="bg-primary text-primary-foreground flex size-7 items-center justify-center rounded-md">
                 <Umbrella className="size-4" />
               </span>
-              CRM Seguros
+              {correduriaNombre}
             </SheetTitle>
           </SheetHeader>
           <div className="py-4">
-            <SidebarNav onNavigate={() => setOpenSheet(false)} />
+            <SidebarNav onNavigate={() => setOpenSheet(false)} esAdmin={esAdmin} />
           </div>
         </SheetContent>
       </Sheet>

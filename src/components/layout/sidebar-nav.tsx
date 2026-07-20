@@ -2,15 +2,22 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { NAV_ITEMS, esRutaActiva } from "@/lib/nav"
+import { NAV_ITEMS, ITEM_EQUIPO, esRutaActiva } from "@/lib/nav"
 import { cn } from "@/lib/utils"
 
-export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
+export function SidebarNav({
+  onNavigate,
+  esAdmin = false,
+}: {
+  onNavigate?: () => void
+  esAdmin?: boolean
+}) {
   const pathname = usePathname()
+  const items = esAdmin ? [...NAV_ITEMS, ITEM_EQUIPO] : NAV_ITEMS
 
   return (
     <nav className="grid gap-1 px-3">
-      {NAV_ITEMS.map((item) => {
+      {items.map((item) => {
         const activo = esRutaActiva(pathname, item.match)
         const Icon = item.icon
         return (

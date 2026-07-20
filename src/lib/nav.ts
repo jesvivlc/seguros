@@ -4,6 +4,7 @@ import {
   FileText,
   CalendarDays,
   Search,
+  UserCog,
   type LucideIcon,
 } from "lucide-react"
 
@@ -22,6 +23,14 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/agenda", label: "Agenda", icon: CalendarDays, match: "/agenda" },
   { href: "/buscar", label: "Buscar", icon: Search, match: "/buscar" },
 ]
+
+/** Enlace visible solo para el admin de la correduría. */
+export const ITEM_EQUIPO: NavItem = {
+  href: "/equipo",
+  label: "Equipo",
+  icon: UserCog,
+  match: "/equipo",
+}
 
 export function esRutaActiva(pathname: string, match: string): boolean {
   if (match === "/") return pathname === "/"
