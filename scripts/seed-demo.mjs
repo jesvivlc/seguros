@@ -55,12 +55,22 @@ async function crearCliente(correduria_id, agenteId, nombre, apellidos) {
 }
 
 async function crearPoliza(correduria_id, agenteId, cliente_id, compania, numero) {
-  const { error } = await sb.from("polizas").insert({
+  const { data, error } = await sb.from("polizas").insert({
     correduria_id, user_id: agenteId, cliente_id, compania, numero_poliza: numero,
     tipo: "auto", fecha_efecto: enDias(-300), fecha_vencimiento: enDias(20),
     forma_pago: "anual", estado: "vigente", coberturas: [],
-  })
+  }).select("id").single()
   if (error) throw new Error(`poliza ${numero}: ${error.message}`)
+  return data.id
+}
+
+async function crearSiniestro(correduria_id, agenteId, cliente_id, poliza_id, tipo, estado, numero, descripcion, importe) {
+  const { error } = await sb.from("siniestros").insert({
+    correduria_id, user_id: agenteId, cliente_id, poliza_id, tipo, estado,
+    numero_siniestro: numero, fecha_ocurrencia: enDias(-10),
+    descripcion, importe_estimado: importe,
+  })
+  if (error) throw new Error(`siniestro ${numero}: ${error.message}`)
 }
 
 async function crearTarea(correduria_id, agenteId, cliente_id, titulo) {
@@ -84,10 +94,11 @@ const aAna = await crearUsuario("demo.levante.ana@example.com", A, "agente", "An
 const aLuis = await crearUsuario("demo.levante.luis@example.com", A, "agente", "Luis Gil")
 const cA1 = await crearCliente(A, aAna, "María", "López")
 const cA2 = await crearCliente(A, aLuis, "Jorge", "Ramírez")
-await crearPoliza(A, aAna, cA1, "Mapfre", "LEV-001")
+const pA1 = await crearPoliza(A, aAna, cA1, "Mapfre", "LEV-001")
 await crearPoliza(A, aLuis, cA2, "Allianz", "LEV-002")
 await crearTarea(A, aAna, cA1, "Llamar a María (renovación)")
 await crearTarea(A, aLuis, cA2, "Enviar comparativa a Jorge")
+await crearSiniestro(A, aAna, cA1, pA1, "agua", "en_tramite", "SIN-LEV-24-001", "Rotura de tubería en cocina.", 1200)
 
 // --- Correduría B: POR AGENTE -----------------------------------------------
 const B = await crearCorreduria("DEMO Correduría Norte", "por_agente")
@@ -96,10 +107,12 @@ const bMarta = await crearUsuario("demo.norte.marta@example.com", B, "agente", "
 const bPedro = await crearUsuario("demo.norte.pedro@example.com", B, "agente", "Pedro Sanz")
 const cB1 = await crearCliente(B, bMarta, "Elena", "Díaz")
 const cB2 = await crearCliente(B, bPedro, "Raúl", "Moreno")
-await crearPoliza(B, bMarta, cB1, "AXA", "NOR-001")
-await crearPoliza(B, bPedro, cB2, "Generali", "NOR-002")
+const pB1 = await crearPoliza(B, bMarta, cB1, "AXA", "NOR-001")
+const pB2 = await crearPoliza(B, bPedro, cB2, "Generali", "NOR-002")
 await crearTarea(B, bMarta, cB1, "Llamar a Elena")
 await crearTarea(B, bPedro, cB2, "Revisar póliza de Raúl")
+await crearSiniestro(B, bMarta, cB1, pB1, "robo", "abierto", "SIN-NOR-24-001", "Robo en domicilio, sustracción de electrónica.", 3500)
+await crearSiniestro(B, bPedro, cB2, pB2, "danos", "pericial", "SIN-NOR-24-002", "Daños por granizo en vehículo.", 850)
 
 console.log(JSON.stringify({
   A: { id: A, visibilidad: "compartida", admin: "demo.levante.admin@example.com", agentes: ["demo.levante.ana@example.com","demo.levante.luis@example.com"] },
