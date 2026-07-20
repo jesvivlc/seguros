@@ -127,12 +127,36 @@ Diseño en `docs/superpowers/specs/…`, plan en `docs/superpowers/plans/…`.
     la ficha del cliente, lista global `/siniestros`, migración `0007`, misma RLS
     multi-tenant. Desplegado y verificado.
   - ✅ **Estadísticas** (2026-07-20): panel `/estadisticas` (server-render, datos
-    aislados por correduría) con KPIs (clientes activos, pólizas vigentes, prima en
-    cartera, siniestros abiertos), semáforo de renovaciones, pólizas por tipo, top
-    compañías, prima por tipo y siniestros por estado. Gráficos de barras propios
-    (sin dependencias). Desplegado.
-  - Pendientes: comparador de pólizas con IA · portal del cliente · integración
-    WhatsApp/email. De una en una cuando lo decidas.
+    aislados por correduría) con KPIs, semáforo de renovaciones, pólizas por tipo,
+    top compañías, prima por tipo y siniestros por estado. Gráficos propios. Desplegado.
+  - ✅ **Comparador de pólizas con IA** (2026-07-20): `/comparador` sube 2–4 PDFs y
+    `claude-opus-4-8` (SDK `@anthropic-ai/sdk`) los lee y genera tabla comparativa de
+    coberturas + diferencias + recomendación. Backend `/api/comparador` (server-only).
+    `ANTHROPIC_API_KEY` en Vercel/`.env.local`. Verificado end-to-end. Coste ≈ $0.04/uso
+    (a la cuenta de Anthropic del titular de la key). Desplegado.
+  - ✅ **Portal del cliente** (2026-07-20): `/portal`, área externa en **SOLO LECTURA**
+    donde el cliente ve **solo sus pólizas y documentos**. Migración `0008` (tabla
+    `portal_accesos`, `mi_cliente_portal()`, RLS permisiva de solo-lectura). Alta/baja
+    del acceso desde la ficha (pestaña Portal). **Aislamiento verificado** con
+    `scripts/verify-portal.mjs` (9/9: no ve otros clientes/siniestros/tareas, no puede
+    escribir). Desplegado.
+  - ⛔ **WhatsApp/email**: NO construidas — aparcadas por decisión propia en `ROADMAP.md`
+    (bloqueo legal de WhatsApp + van por n8n a futuro).
+
+## ⚠️ Superficie sensible desplegada — el portal del cliente
+El portal expone datos de clientes a **logins externos**. El aislamiento se ha
+verificado a nivel de RLS (9/9 checks, contra la BD real), que es la frontera de
+seguridad real. Aun así, por ser una superficie externa, **conviene que lo revises**
+antes de dar accesos a clientes reales. Logins DEMO ya creados para probarlo (contraseña
+`Demo1234!`): `demo.portal.elena@example.com` (ve la cartera de Elena) y
+`demo.portal.raul@example.com` (la de Raúl) — entra en producción y comprueba que cada
+uno solo ve lo suyo. Bórralos antes de producción real (junto con el resto de DEMO).
+
+## Claves API en el chat — ROTAR
+Durante el desarrollo se pegaron en el chat: el token de Supabase (`sbp_…`, usado para
+aplicar migraciones) y la `ANTHROPIC_API_KEY`. Ambas funcionan y están guardadas de
+forma segura (Vercel / `.env.local`, fuera del repo), pero **conviene rotarlas** en sus
+paneles respectivos por haber pasado por texto plano.
 
 ## Aplicar migraciones sin pasos manuales
 Existe `scripts/apply-migration.mjs`: aplica un `.sql` vía la Management API de
