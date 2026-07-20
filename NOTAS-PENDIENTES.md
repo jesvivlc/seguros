@@ -173,9 +173,9 @@ uno solo ve lo suyo. Bórralos antes de producción real (junto con el resto de 
   - **Alerta de fallo del cron** por email a `ALERT_EMAIL` si `run_daily_jobs` falla.
   - **Reset de contraseña por Resend**: genera el enlace con la admin API y lo envía
     (no depende del SMTP de Supabase). Verificado que genera el enlace.
-  - ⚠️ **Config pendiente**: añadir `https://seguros-crm-three.vercel.app/auth/callback`
-    (o `/**`) a **Redirect URLs** en Supabase → Auth → URL Configuration, para que el
-    enlace del reset redirija a la app y no al Site URL.
+  - ✅ **Config aplicada** (vía Management API): `site_url` = URL de producción y
+    `uri_allow_list` incluye `https://seguros-crm-three.vercel.app/**` (+ localhost).
+    El enlace del reset ya redirige correctamente a la app.
   - Nota: los recordatorios se envían cuando faltan EXACTAMENTE 30 o 7 días; si el cron
     se salta un día, esa póliza se pierde ese recordatorio (MVP sin tabla de control).
 
