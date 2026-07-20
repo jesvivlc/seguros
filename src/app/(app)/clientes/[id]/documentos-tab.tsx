@@ -40,9 +40,11 @@ function nombreSeguro(nombre: string): string {
 
 export function DocumentosTab({
   clienteId,
+  correduriaId,
   documentos,
 }: {
   clienteId: string
+  correduriaId: string
   documentos: DocumentoRow[]
 }) {
   const router = useRouter()
@@ -71,7 +73,9 @@ export function DocumentosTab({
 
     setSubiendo(true)
     for (const file of lista) {
-      const path = `${user.id}/${clienteId}/${Date.now()}-${nombreSeguro(file.name)}`
+      // Ruta {correduria_id}/{cliente_id}/{archivo}: la RLS de Storage exige que
+      // la primera carpeta sea la correduría del usuario.
+      const path = `${correduriaId}/${clienteId}/${Date.now()}-${nombreSeguro(file.name)}`
 
       const { error: upErr } = await supabase.storage
         .from(BUCKET)

@@ -145,6 +145,7 @@ export default async function ClienteDetallePage({
 
       <ClienteTabs
         clienteId={c.id}
+        correduriaId={c.correduria_id}
         formDefaults={formDefaults}
         polizas={polizas}
         interacciones={interacciones}

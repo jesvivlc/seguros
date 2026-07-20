@@ -42,6 +42,7 @@ type PolizaLite = Pick<
 
 export function ClienteTabs({
   clienteId,
+  correduriaId,
   formDefaults,
   polizas,
   interacciones,
@@ -49,6 +50,7 @@ export function ClienteTabs({
   documentos,
 }: {
   clienteId: string
+  correduriaId: string
   formDefaults: Partial<ClienteFormInput>
   polizas: PolizaLite[]
   interacciones: InteraccionConPoliza[]
@@ -201,7 +203,11 @@ export function ClienteTabs({
 
       {/* DOCUMENTOS */}
       <TabsContent value="documentos" className="mt-4">
-        <DocumentosTab clienteId={clienteId} documentos={documentos} />
+        <DocumentosTab
+          clienteId={clienteId}
+          correduriaId={correduriaId}
+          documentos={documentos}
+        />
       </TabsContent>
 
       {/* TAREAS */}

@@ -141,3 +141,70 @@ create policy documentos_update on storage.objects for update to authenticated
   with check (bucket_id = 'documentos' and (storage.foldername(name))[1] = public.mi_correduria()::text);
 create policy documentos_delete on storage.objects for delete to authenticated
   using (bucket_id = 'documentos' and (storage.foldername(name))[1] = public.mi_correduria()::text);
+
+-- Job diario: las tareas generadas deben heredar la correduría de la póliza/cliente
+-- (se redefinen preservando la lógica de fecha en Europe/Madrid de 0005). -------
+create or replace function public.generar_tareas_renovacion()
+returns integer language plpgsql security definer set search_path = public as $$
+declare
+  v_insertadas integer := 0;
+  v_hoy date := public.hoy_madrid();
+begin
+  with candidatas as (
+    insert into public.tareas (
+      correduria_id, user_id, cliente_id, poliza_id, tipo, titulo, descripcion,
+      fecha_vencimiento, estado, generada_automaticamente
+    )
+    select
+      p.correduria_id, p.user_id, p.cliente_id, p.id,
+      'revisar_renovacion'::tipo_tarea,
+      'Renovación: ' || p.compania || ' ' || p.tipo::text || ' — ' || c.nombre || ' ' || c.apellidos,
+      'Póliza ' || p.numero_poliza || ' vence el ' || to_char(p.fecha_vencimiento, 'DD/MM/YYYY') || '.',
+      greatest(p.fecha_vencimiento - interval '30 days', v_hoy)::date,
+      'pendiente'::estado_tarea, true
+    from public.polizas p
+    join public.clientes c on c.id = p.cliente_id
+    where p.estado = 'vigente'
+      and p.fecha_vencimiento >= v_hoy
+      and p.fecha_vencimiento <= v_hoy + 60
+      and not exists (
+        select 1 from public.tareas t
+        where t.poliza_id = p.id and t.tipo = 'revisar_renovacion' and t.estado = 'pendiente'
+      )
+    returning 1
+  )
+  select count(*) into v_insertadas from candidatas;
+  return v_insertadas;
+end; $$;
+
+create or replace function public.generar_tareas_cumpleanos()
+returns integer language plpgsql security definer set search_path = public as $$
+declare
+  v_insertadas integer := 0;
+  v_hoy date := public.hoy_madrid();
+begin
+  with candidatas as (
+    insert into public.tareas (
+      correduria_id, user_id, cliente_id, tipo, titulo, descripcion,
+      fecha_vencimiento, estado, generada_automaticamente
+    )
+    select
+      c.correduria_id, c.user_id, c.id,
+      'cumpleanos'::tipo_tarea,
+      'Cumpleaños: ' || c.nombre || ' ' || c.apellidos,
+      'Felicitar a ' || c.nombre || '.',
+      v_hoy, 'pendiente'::estado_tarea, true
+    from public.clientes c
+    where c.estado = 'activo'
+      and c.fecha_nacimiento is not null
+      and extract(month from c.fecha_nacimiento) = extract(month from v_hoy)
+      and extract(day   from c.fecha_nacimiento) = extract(day   from v_hoy)
+      and not exists (
+        select 1 from public.tareas t
+        where t.cliente_id = c.id and t.tipo = 'cumpleanos' and t.fecha_vencimiento = v_hoy
+      )
+    returning 1
+  )
+  select count(*) into v_insertadas from candidatas;
+  return v_insertadas;
+end; $$;

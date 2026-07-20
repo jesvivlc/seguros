@@ -1,7 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { requireUser } from "@/lib/auth"
+import { requireUser, requireCorreduria } from "@/lib/auth"
 import type { DocumentoRow } from "@/lib/database.types"
 import type { CategoriaDocumento } from "@/lib/constants"
 
@@ -26,10 +26,10 @@ export interface RegistrarInput {
 export async function registrarDocumento(
   input: RegistrarInput
 ): Promise<{ ok: boolean; documento?: DocumentoRow; error?: string }> {
-  const { supabase, user } = await requireUser()
+  const { supabase, user, perfil } = await requireCorreduria()
 
-  // Defensa en profundidad: la ruta debe pertenecer a la carpeta del usuario.
-  if (!input.storage_path.startsWith(`${user.id}/`)) {
+  // Defensa en profundidad: la ruta debe pertenecer a la carpeta de la correduría.
+  if (!input.storage_path.startsWith(`${perfil.correduria_id}/`)) {
     return { ok: false, error: "Ruta de almacenamiento no válida." }
   }
 
