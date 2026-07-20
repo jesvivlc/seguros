@@ -152,6 +152,22 @@ antes de dar accesos a clientes reales. Logins DEMO ya creados para probarlo (co
 `demo.portal.raul@example.com` (la de Raúl) — entra en producción y comprueba que cada
 uno solo ve lo suyo. Bórralos antes de producción real (junto con el resto de DEMO).
 
+## Mejoras adicionales (2026-07-20)
+- ✅ **Gestión de cuenta / contraseña**: `/cuenta` para cambiar contraseña (agentes y
+  clientes de portal; enlazado desde topbar y portal). Flujo "olvidé mi contraseña":
+  `/auth/recuperar` → email → `/auth/callback` → `/auth/actualizar`.
+  ⚠️ **Config para que el email funcione**: en Supabase → Authentication → URL
+  Configuration, añade la URL de producción a **Redirect URLs**
+  (`https://seguros-crm-three.vercel.app/**`) y ten el email de Auth habilitado
+  (el servicio integrado de Supabase sirve para pruebas; para producción, configura SMTP).
+  El **cambio de contraseña estando dentro funciona ya, sin configuración**.
+- ✅ **Exportar cartera (CSV)**: botón "Exportar" en clientes, pólizas y siniestros →
+  `/api/exportar?tipo=…` (CSV con `;` y BOM, se abre directo en Excel; respeta la RLS).
+- ✅ **Portal ampliado**: el cliente ve sus **siniestros** (solo lectura) y sus
+  **próximas renovaciones** destacadas, y puede **subir documentos** a su carpeta
+  (migración `0009`; se atribuyen al agente propietario para que la correduría los vea).
+  Aislamiento reverificado con `scripts/verify-portal.mjs` (10/10).
+
 ## Claves API en el chat — ROTAR
 Durante el desarrollo se pegaron en el chat: el token de Supabase (`sbp_…`, usado para
 aplicar migraciones) y la `ANTHROPIC_API_KEY`. Ambas funcionan y están guardadas de
