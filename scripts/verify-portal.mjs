@@ -73,7 +73,7 @@ const polE = await get(tElena, "polizas")
 check("Portal Elena: solo ve pólizas de su cliente (todas suyas)", polE.length, 1)
 
 const sinE = await get(tElena, "siniestros")
-check("Portal Elena: NO ve siniestros (0)", Array.isArray(sinE) ? sinE.length : 0, 0)
+check("Portal Elena: ve solo su(s) siniestro(s) (1)", Array.isArray(sinE) ? sinE.length : 0, 1)
 const tarE = await get(tElena, "tareas")
 check("Portal Elena: NO ve tareas (0)", Array.isArray(tarE) ? tarE.length : 0, 0)
 
@@ -82,6 +82,8 @@ const tRaul = await login("demo.portal.raul@example.com")
 const clientesR = await get(tRaul, "clientes")
 check("Portal Raúl: ve exactamente 1 cliente (el suyo)", clientesR.length, 1)
 check("Portal Raúl: no es el cliente de Elena", clientesR[0]?.id !== elena.id, true)
+const sinR = await get(tRaul, "siniestros")
+check("Portal Raúl: ve su siniestro, distinto al de Elena", sinR[0]?.id !== undefined && sinR[0]?.id !== sinE[0]?.id, true)
 
 // Escritura: un usuario-portal NO puede crear ni editar
 const rIns = await fetch(`${BASE}/rest/v1/clientes`, {
