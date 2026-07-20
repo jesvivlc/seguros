@@ -10,6 +10,8 @@ import type {
   TipoTarea,
   EstadoTarea,
   CategoriaDocumento,
+  Visibilidad,
+  RolUsuario,
 } from "@/lib/constants"
 
 export type Cobertura = {
@@ -29,6 +31,7 @@ type Timestamps = {
 }
 
 export type ClienteRow = Timestamps & {
+  correduria_id: string
   nombre: string
   apellidos: string
   dni_nie: string | null
@@ -48,6 +51,7 @@ export type ClienteRow = Timestamps & {
 }
 
 export type PolizaRow = Timestamps & {
+  correduria_id: string
   cliente_id: string
   compania: string
   numero_poliza: string
@@ -65,6 +69,7 @@ export type PolizaRow = Timestamps & {
 }
 
 export type InteraccionRow = Timestamps & {
+  correduria_id: string
   cliente_id: string
   poliza_id: string | null
   tipo: TipoInteraccion
@@ -74,6 +79,7 @@ export type InteraccionRow = Timestamps & {
 }
 
 export type TareaRow = Timestamps & {
+  correduria_id: string
   cliente_id: string | null
   poliza_id: string | null
   tipo: TipoTarea
@@ -87,6 +93,7 @@ export type TareaRow = Timestamps & {
 }
 
 export type DocumentoRow = Timestamps & {
+  correduria_id: string
   cliente_id: string
   poliza_id: string | null
   categoria: CategoriaDocumento
@@ -94,6 +101,24 @@ export type DocumentoRow = Timestamps & {
   storage_path: string
   mime_type: string | null
   tamano_bytes: number | null
+}
+
+export type CorreduriaRow = Timestamps & {
+  nombre: string
+  cif: string | null
+  visibilidad: Visibilidad
+  activa: boolean
+}
+
+export type PerfilRow = {
+  user_id: string
+  correduria_id: string | null
+  rol: RolUsuario | null
+  nombre_completo: string | null
+  es_super_admin: boolean
+  activo: boolean
+  created_at: string
+  updated_at: string
 }
 
 type TableConfig<Row> = {
@@ -111,6 +136,8 @@ export type Database = {
       interacciones: TableConfig<InteraccionRow>
       tareas: TableConfig<TareaRow>
       documentos: TableConfig<DocumentoRow>
+      corredurias: TableConfig<CorreduriaRow>
+      perfiles: TableConfig<PerfilRow>
     }
     Views: Record<string, never>
     Functions: {
@@ -125,6 +152,13 @@ export type Database = {
           tareas_cumpleanos: number
           ejecutado_at: string
         }
+      }
+      mi_correduria: { Args: Record<string, never>; Returns: string | null }
+      mi_rol: { Args: Record<string, never>; Returns: RolUsuario | null }
+      es_super_admin: { Args: Record<string, never>; Returns: boolean }
+      visibilidad_mi_correduria: {
+        Args: Record<string, never>
+        Returns: Visibilidad | null
       }
     }
     Enums: Record<string, never>

@@ -46,6 +46,10 @@ export type CategoriaDocumento =
   | "informe"
   | "otro"
 
+// Multi-tenancy
+export type Visibilidad = "compartida" | "por_agente"
+export type RolUsuario = "admin" | "agente"
+
 type LabelMap<T extends string> = Record<T, string>
 
 export const ESTADO_CLIENTE_LABEL: LabelMap<EstadoCliente> = {
@@ -138,7 +142,18 @@ export function toOptions<T extends string>(
   return (Object.keys(map) as T[]).map((value) => ({ value, label: map[value] }))
 }
 
+export const ROL_LABEL: LabelMap<RolUsuario> = {
+  admin: "Administrador",
+  agente: "Agente",
+}
+export const VISIBILIDAD_LABEL: LabelMap<Visibilidad> = {
+  compartida: "Compartida — todos ven toda la cartera",
+  por_agente: "Por agente — cada uno ve solo lo suyo",
+}
+
 export const ESTADO_CLIENTE_OPTIONS = toOptions(ESTADO_CLIENTE_LABEL)
+export const ROL_OPTIONS = toOptions(ROL_LABEL)
+export const VISIBILIDAD_OPTIONS = toOptions(VISIBILIDAD_LABEL)
 export const TIPO_POLIZA_OPTIONS = toOptions(TIPO_POLIZA_LABEL)
 export const FORMA_PAGO_OPTIONS = toOptions(FORMA_PAGO_LABEL)
 export const ESTADO_POLIZA_OPTIONS = toOptions(ESTADO_POLIZA_LABEL)

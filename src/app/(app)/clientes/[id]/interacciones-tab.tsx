@@ -110,6 +110,7 @@ export function InteraccionesTab({
     const optimista: Item = {
       id: tempId,
       user_id: "",
+      correduria_id: "",
       cliente_id: clienteId,
       poliza_id: polizaId || null,
       tipo,
