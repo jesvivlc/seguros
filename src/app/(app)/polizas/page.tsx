@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Plus } from "lucide-react"
+import { Plus, Download } from "lucide-react"
 import { requireUser } from "@/lib/auth"
 import { PageHeader } from "@/components/layout/page-header"
 import { Button } from "@/components/ui/button"
@@ -26,6 +26,10 @@ export default async function PolizasPage() {
           polizas.length === 1 ? "póliza" : "pólizas"
         } en cartera`}
       >
+        <Button variant="outline" render={<a href="/api/exportar?tipo=polizas" />}>
+          <Download className="size-4" />
+          <span className="hidden sm:inline">Exportar</span>
+        </Button>
         <Button render={<Link href="/polizas/nueva" />}>
           <Plus className="size-4" />
           Nueva póliza

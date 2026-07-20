@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Plus } from "lucide-react"
+import { Plus, Download } from "lucide-react"
 import { requireUser } from "@/lib/auth"
 import { PageHeader } from "@/components/layout/page-header"
 import { Button } from "@/components/ui/button"
@@ -37,6 +37,10 @@ export default async function ClientesPage() {
           clientes.length === 1 ? "cliente" : "clientes"
         } en tu cartera`}
       >
+        <Button variant="outline" render={<a href="/api/exportar?tipo=clientes" />}>
+          <Download className="size-4" />
+          <span className="hidden sm:inline">Exportar</span>
+        </Button>
         <Button render={<Link href="/clientes/nuevo" />}>
           <Plus className="size-4" />
           Nuevo cliente

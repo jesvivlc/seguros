@@ -1,5 +1,7 @@
+import { Download } from "lucide-react"
 import { requireUser } from "@/lib/auth"
 import { PageHeader } from "@/components/layout/page-header"
+import { Button } from "@/components/ui/button"
 import { SiniestrosList, type SiniestroListItem } from "./siniestros-list"
 
 export const dynamic = "force-dynamic"
@@ -22,7 +24,12 @@ export default async function SiniestrosPage() {
         description={`${siniestros.length} ${
           siniestros.length === 1 ? "siniestro" : "siniestros"
         } registrados`}
-      />
+      >
+        <Button variant="outline" render={<a href="/api/exportar?tipo=siniestros" />}>
+          <Download className="size-4" />
+          <span className="hidden sm:inline">Exportar</span>
+        </Button>
+      </PageHeader>
       <SiniestrosList siniestros={siniestros} />
     </>
   )
