@@ -50,6 +50,23 @@ export type CategoriaDocumento =
 export type Visibilidad = "compartida" | "por_agente"
 export type RolUsuario = "admin" | "agente"
 
+// Siniestros
+export type TipoSiniestro =
+  | "danos"
+  | "robo"
+  | "incendio"
+  | "agua"
+  | "rc"
+  | "lesiones"
+  | "otro"
+export type EstadoSiniestro =
+  | "abierto"
+  | "en_tramite"
+  | "pericial"
+  | "resuelto"
+  | "rechazado"
+  | "cerrado"
+
 type LabelMap<T extends string> = Record<T, string>
 
 export const ESTADO_CLIENTE_LABEL: LabelMap<EstadoCliente> = {
@@ -151,9 +168,29 @@ export const VISIBILIDAD_LABEL: LabelMap<Visibilidad> = {
   por_agente: "Por agente — cada uno ve solo lo suyo",
 }
 
+export const TIPO_SINIESTRO_LABEL: LabelMap<TipoSiniestro> = {
+  danos: "Daños materiales",
+  robo: "Robo",
+  incendio: "Incendio",
+  agua: "Daños por agua",
+  rc: "Responsabilidad civil",
+  lesiones: "Lesiones",
+  otro: "Otro",
+}
+export const ESTADO_SINIESTRO_LABEL: LabelMap<EstadoSiniestro> = {
+  abierto: "Abierto",
+  en_tramite: "En trámite",
+  pericial: "Pericial",
+  resuelto: "Resuelto",
+  rechazado: "Rechazado",
+  cerrado: "Cerrado",
+}
+
 export const ESTADO_CLIENTE_OPTIONS = toOptions(ESTADO_CLIENTE_LABEL)
 export const ROL_OPTIONS = toOptions(ROL_LABEL)
 export const VISIBILIDAD_OPTIONS = toOptions(VISIBILIDAD_LABEL)
+export const TIPO_SINIESTRO_OPTIONS = toOptions(TIPO_SINIESTRO_LABEL)
+export const ESTADO_SINIESTRO_OPTIONS = toOptions(ESTADO_SINIESTRO_LABEL)
 export const TIPO_POLIZA_OPTIONS = toOptions(TIPO_POLIZA_LABEL)
 export const FORMA_PAGO_OPTIONS = toOptions(FORMA_PAGO_LABEL)
 export const ESTADO_POLIZA_OPTIONS = toOptions(ESTADO_POLIZA_LABEL)

@@ -4,8 +4,10 @@ import { calcularSemaforo } from "@/lib/semaforo"
 import {
   ESTADO_CLIENTE_LABEL,
   ESTADO_POLIZA_LABEL,
+  ESTADO_SINIESTRO_LABEL,
   type EstadoCliente,
   type EstadoPoliza,
+  type EstadoSiniestro,
 } from "@/lib/constants"
 
 const ESTADO_CLIENTE_CLASS: Record<EstadoCliente, string> = {
@@ -40,6 +42,29 @@ export function EstadoPolizaBadge({ estado }: { estado: EstadoPoliza }) {
   return (
     <Badge variant="outline" className={cn(ESTADO_POLIZA_CLASS[estado])}>
       {ESTADO_POLIZA_LABEL[estado]}
+    </Badge>
+  )
+}
+
+const ESTADO_SINIESTRO_CLASS: Record<EstadoSiniestro, string> = {
+  abierto:
+    "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-900",
+  en_tramite:
+    "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-900",
+  pericial:
+    "bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-950 dark:text-violet-300 dark:border-violet-900",
+  resuelto:
+    "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-900",
+  rechazado:
+    "bg-red-100 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-900",
+  cerrado:
+    "bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700",
+}
+
+export function EstadoSiniestroBadge({ estado }: { estado: EstadoSiniestro }) {
+  return (
+    <Badge variant="outline" className={cn(ESTADO_SINIESTRO_CLASS[estado])}>
+      {ESTADO_SINIESTRO_LABEL[estado]}
     </Badge>
   )
 }

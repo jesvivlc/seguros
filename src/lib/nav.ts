@@ -2,6 +2,7 @@ import {
   LayoutDashboard,
   Users,
   FileText,
+  ShieldAlert,
   CalendarDays,
   Search,
   UserCog,
@@ -20,6 +21,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Mi día", icon: LayoutDashboard, match: "/" },
   { href: "/clientes", label: "Clientes", icon: Users, match: "/clientes" },
   { href: "/polizas", label: "Pólizas", icon: FileText, match: "/polizas" },
+  { href: "/siniestros", label: "Siniestros", icon: ShieldAlert, match: "/siniestros" },
   { href: "/agenda", label: "Agenda", icon: CalendarDays, match: "/agenda" },
   { href: "/buscar", label: "Buscar", icon: Search, match: "/buscar" },
 ]

@@ -19,6 +19,7 @@ import { ClienteForm } from "../cliente-form"
 import { InteraccionesTab } from "./interacciones-tab"
 import { TareasTab } from "./tareas-tab"
 import { DocumentosTab } from "./documentos-tab"
+import { SiniestrosTab } from "./siniestros-tab"
 import { TIPO_POLIZA_LABEL } from "@/lib/constants"
 import { formatEuros, formatFecha } from "@/lib/format"
 import type { ClienteFormInput } from "@/lib/schemas/cliente"
@@ -27,6 +28,7 @@ import type {
   InteraccionConPoliza,
   TareaConRelaciones,
   DocumentoRow,
+  SiniestroConRelaciones,
 } from "@/lib/database.types"
 
 type PolizaLite = Pick<
@@ -48,6 +50,7 @@ export function ClienteTabs({
   interacciones,
   tareas,
   documentos,
+  siniestros,
 }: {
   clienteId: string
   correduriaId: string
@@ -56,6 +59,7 @@ export function ClienteTabs({
   interacciones: InteraccionConPoliza[]
   tareas: TareaConRelaciones[]
   documentos: DocumentoRow[]
+  siniestros: SiniestroConRelaciones[]
 }) {
   const vigentes = polizas.filter((p) => p.estado === "vigente").length
   const [tab, setTab] = React.useState("datos")
@@ -97,6 +101,14 @@ export function ClienteTabs({
           {documentos.length > 0 && (
             <Badge variant="secondary" className="ml-1.5">
               {documentos.length}
+            </Badge>
+          )}
+        </TabsTrigger>
+        <TabsTrigger value="siniestros">
+          Siniestros
+          {siniestros.length > 0 && (
+            <Badge variant="secondary" className="ml-1.5">
+              {siniestros.length}
             </Badge>
           )}
         </TabsTrigger>
@@ -207,6 +219,20 @@ export function ClienteTabs({
           clienteId={clienteId}
           correduriaId={correduriaId}
           documentos={documentos}
+        />
+      </TabsContent>
+
+      {/* SINIESTROS */}
+      <TabsContent value="siniestros" className="mt-4">
+        <SiniestrosTab
+          clienteId={clienteId}
+          polizas={polizas.map((p) => ({
+            id: p.id,
+            compania: p.compania,
+            numero_poliza: p.numero_poliza,
+            tipo: p.tipo,
+          }))}
+          siniestros={siniestros}
         />
       </TabsContent>
 

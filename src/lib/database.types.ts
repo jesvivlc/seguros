@@ -12,6 +12,8 @@ import type {
   CategoriaDocumento,
   Visibilidad,
   RolUsuario,
+  TipoSiniestro,
+  EstadoSiniestro,
 } from "@/lib/constants"
 
 export type Cobertura = {
@@ -103,6 +105,21 @@ export type DocumentoRow = Timestamps & {
   tamano_bytes: number | null
 }
 
+export type SiniestroRow = Timestamps & {
+  correduria_id: string
+  cliente_id: string
+  poliza_id: string
+  numero_siniestro: string | null
+  tipo: TipoSiniestro
+  estado: EstadoSiniestro
+  fecha_ocurrencia: string | null
+  fecha_apertura: string
+  descripcion: string | null
+  importe_estimado: number | null
+  importe_indemnizado: number | null
+  observaciones: string | null
+}
+
 export type CorreduriaRow = Timestamps & {
   nombre: string
   cif: string | null
@@ -136,6 +153,7 @@ export type Database = {
       interacciones: TableConfig<InteraccionRow>
       tareas: TableConfig<TareaRow>
       documentos: TableConfig<DocumentoRow>
+      siniestros: TableConfig<SiniestroRow>
       corredurias: TableConfig<CorreduriaRow>
       perfiles: TableConfig<PerfilRow>
     }
@@ -178,3 +196,8 @@ export type TareaConRelaciones = TareaRow & {
   poliza: Pick<PolizaRow, "id" | "compania" | "tipo" | "numero_poliza"> | null
 }
 export type DocumentoRowLite = DocumentoRow
+
+export type SiniestroConRelaciones = SiniestroRow & {
+  cliente: Pick<ClienteRow, "id" | "nombre" | "apellidos"> | null
+  poliza: Pick<PolizaRow, "id" | "compania" | "numero_poliza" | "tipo"> | null
+}

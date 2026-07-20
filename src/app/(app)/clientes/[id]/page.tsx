@@ -13,6 +13,7 @@ import type {
   InteraccionConPoliza,
   TareaConRelaciones,
   DocumentoRow,
+  SiniestroConRelaciones,
 } from "@/lib/database.types"
 import type { ClienteFormInput } from "@/lib/schemas/cliente"
 
@@ -35,34 +36,45 @@ export default async function ClienteDetallePage({
   if (!clienteData) notFound()
   const c = clienteData as ClienteRow
 
-  const [{ data: polizasData }, { data: interData }, { data: tareasData }, { data: docsData }] =
-    await Promise.all([
-      supabase
-        .from("polizas")
-        .select("*")
-        .eq("cliente_id", id)
-        .order("fecha_vencimiento", { ascending: true }),
-      supabase
-        .from("interacciones")
-        .select("*, poliza:polizas(id, compania, numero_poliza, tipo)")
-        .eq("cliente_id", id)
-        .order("fecha", { ascending: false }),
-      supabase
-        .from("tareas")
-        .select("*, poliza:polizas(id, compania, tipo, numero_poliza)")
-        .eq("cliente_id", id)
-        .order("fecha_vencimiento", { ascending: true }),
-      supabase
-        .from("documentos")
-        .select("*")
-        .eq("cliente_id", id)
-        .order("created_at", { ascending: false }),
-    ])
+  const [
+    { data: polizasData },
+    { data: interData },
+    { data: tareasData },
+    { data: docsData },
+    { data: siniestrosData },
+  ] = await Promise.all([
+    supabase
+      .from("polizas")
+      .select("*")
+      .eq("cliente_id", id)
+      .order("fecha_vencimiento", { ascending: true }),
+    supabase
+      .from("interacciones")
+      .select("*, poliza:polizas(id, compania, numero_poliza, tipo)")
+      .eq("cliente_id", id)
+      .order("fecha", { ascending: false }),
+    supabase
+      .from("tareas")
+      .select("*, poliza:polizas(id, compania, tipo, numero_poliza)")
+      .eq("cliente_id", id)
+      .order("fecha_vencimiento", { ascending: true }),
+    supabase
+      .from("documentos")
+      .select("*")
+      .eq("cliente_id", id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("siniestros")
+      .select("*, poliza:polizas(id, compania, numero_poliza, tipo)")
+      .eq("cliente_id", id)
+      .order("created_at", { ascending: false }),
+  ])
 
   const polizas = (polizasData ?? []) as PolizaRow[]
   const interacciones = (interData ?? []) as unknown as InteraccionConPoliza[]
   const tareas = (tareasData ?? []) as unknown as TareaConRelaciones[]
   const documentos = (docsData ?? []) as DocumentoRow[]
+  const siniestros = (siniestrosData ?? []) as unknown as SiniestroConRelaciones[]
 
   const formDefaults: Partial<ClienteFormInput> = {
     nombre: c.nombre,
@@ -151,6 +163,7 @@ export default async function ClienteDetallePage({
         interacciones={interacciones}
         tareas={tareas}
         documentos={documentos}
+        siniestros={siniestros}
       />
     </div>
   )
