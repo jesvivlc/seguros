@@ -49,11 +49,13 @@ Estas cosas no pueden vivir en el código y hay que hacerlas en Supabase/Vercel:
 
 ## Puntos que merecen revisión (no bloqueantes)
 
-- **Zona horaria del "hoy"**: el dashboard y el semáforo calculan el día actual
-  con `new Date()` en el servidor, que en Vercel corre en **UTC**. Cerca de la
-  medianoche (hora española, UTC+1/+2) el "hoy" del servidor puede adelantarse.
-  Para una asesora en España conviene fijar la zona horaria (p. ej. calcular en
-  `Europe/Madrid`) si se detecta el desfase. Impacto bajo, pero real.
+- ~~**Zona horaria del "hoy"**~~ ✅ **RESUELTO**. Todos los cálculos de "hoy",
+  vencimientos y agrupación de tareas usan ahora `Europe/Madrid` vía
+  `src/lib/timezone.ts` (`hoyISOZona`/`hoyZona`), no la zona (UTC) del servidor.
+  Afecta a dashboard, semáforo, calendario, alta de tareas y a las funciones
+  SQL del job diario (`0005_timezone.sql`, helper `hoy_madrid()`). Verificado
+  con `scripts/verify-timezone.ts` (casos de 00:30 y 23:30 hora española, verano
+  e invierno). **Recordatorio**: aplica también la migración `0005` al desplegar.
 - **Borrado de documentos sin confirmación**: al pulsar la papelera se elimina
   el archivo de Storage y su fila sin diálogo de confirmación (coherente con el
   borrado de tareas/interacciones). Si se considera arriesgado, añadir un

@@ -37,6 +37,7 @@ import {
   type EstadoPoliza,
 } from "@/lib/constants"
 import { formatFechaLarga } from "@/lib/format"
+import { hoyZona } from "@/lib/timezone"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { SemaforoBadge } from "@/components/badges"
@@ -137,10 +138,10 @@ export function Calendario({
   cumples: EventoCumple[]
 }) {
   const [vista, setVista] = React.useState<"mes" | "semana">("mes")
-  const [cursor, setCursor] = React.useState<Date>(() => new Date())
+  const [cursor, setCursor] = React.useState<Date>(() => hoyZona())
   const [sel, setSel] = React.useState<Evento | null>(null)
 
-  const hoy = React.useMemo(() => new Date(), [])
+  const hoy = React.useMemo(() => hoyZona(), [])
 
   const { start, end } = React.useMemo(() => {
     if (vista === "semana") {
@@ -245,7 +246,7 @@ export function Calendario({
           <Button variant="outline" size="icon" onClick={() => navegar(1)} aria-label="Siguiente">
             <ChevronRight className="size-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setCursor(new Date())}>
+          <Button variant="outline" size="sm" onClick={() => setCursor(hoyZona())}>
             Hoy
           </Button>
           <h2 className="ml-1 text-lg font-semibold tracking-tight capitalize">{titulo}</h2>

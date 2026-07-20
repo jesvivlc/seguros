@@ -12,12 +12,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { SelectSimple } from "@/components/ui/select-field"
-
-function hoyISO() {
-  const d = new Date()
-  const off = d.getTimezoneOffset()
-  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 10)
-}
+import { hoyISOZona } from "@/lib/timezone"
 
 export function TareasTab({
   clienteId,
@@ -30,7 +25,7 @@ export function TareasTab({
   const [items, setItems] = React.useState<TareaConRelaciones[]>(tareas)
   const [titulo, setTitulo] = React.useState("")
   const [tipo, setTipo] = React.useState<TipoTarea>("llamar")
-  const [fecha, setFecha] = React.useState(hoyISO())
+  const [fecha, setFecha] = React.useState(hoyISOZona())
   const [hora, setHora] = React.useState("")
   const [guardando, setGuardando] = React.useState(false)
 

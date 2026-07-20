@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { format, addDays } from "date-fns"
 import { es } from "date-fns/locale"
+import { hoyISOZona, hoyZona } from "@/lib/timezone"
 import { Users, CalendarClock, RefreshCw, ListTodo, ArrowRight } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { requireUser } from "@/lib/auth"
@@ -69,8 +70,9 @@ function StatCard({
 
 export default async function DashboardPage() {
   const { supabase } = await requireUser()
-  const hoy = new Date()
-  const hoyISO = format(hoy, "yyyy-MM-dd")
+  // "Hoy" en Europe/Madrid, no en la zona horaria (UTC) del servidor de Vercel.
+  const hoy = hoyZona()
+  const hoyISO = hoyISOZona()
   const limiteISO = format(addDays(hoy, 60), "yyyy-MM-dd")
 
   const [{ count: clientesActivos }, { data: tareasData }, { data: polizasData }] =

@@ -1,5 +1,6 @@
 import { differenceInCalendarDays, startOfDay } from "date-fns"
 import { toDate } from "@/lib/format"
+import { hoyZona } from "@/lib/timezone"
 
 export type NivelSemaforo = "verde" | "amarillo" | "rojo" | "vencida"
 
@@ -21,7 +22,7 @@ export interface Semaforo {
  */
 export function calcularSemaforo(
   fechaVencimiento: string | Date | null | undefined,
-  hoy: Date = new Date()
+  hoy: Date = hoyZona()
 ): Semaforo {
   const venc = toDate(fechaVencimiento)
   if (!venc) {
@@ -80,7 +81,7 @@ export function calcularSemaforo(
 /** true si la póliza está en amarillo o rojo (renovación próxima). */
 export function esRenovacionProxima(
   fechaVencimiento: string | Date | null | undefined,
-  hoy: Date = new Date()
+  hoy: Date = hoyZona()
 ): boolean {
   const s = calcularSemaforo(fechaVencimiento, hoy)
   return s.nivel === "amarillo" || s.nivel === "rojo"

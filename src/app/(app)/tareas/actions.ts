@@ -1,7 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { addDays, formatISO } from "date-fns"
+import { addDays, format, parseISO } from "date-fns"
 import { requireUser } from "@/lib/auth"
 import { tareaSchema } from "@/lib/schemas/tarea"
 import type { TareaRow } from "@/lib/database.types"
@@ -88,9 +88,9 @@ export async function posponerTarea(
     .single()
   if (e1 || !actual) return { ok: false, error: "No se encontró la tarea." }
 
-  const nueva = formatISO(addDays(new Date(actual.fecha_vencimiento), dias), {
-    representation: "date",
-  })
+  // Aritmética de fecha-solo tz-segura: parseISO da medianoche local y
+  // format 'yyyy-MM-dd' no depende de la zona horaria del servidor.
+  const nueva = format(addDays(parseISO(actual.fecha_vencimiento), dias), "yyyy-MM-dd")
   const { data: row, error } = await supabase
     .from("tareas")
     .update({ fecha_vencimiento: nueva, estado: "pospuesta" })
