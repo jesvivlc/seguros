@@ -85,3 +85,42 @@ queda preparado pero sin UI.
 
 > No he iniciado la Fase 2. Cuando quieras arrancarla, dímelo y definimos
 > alcance antes de tocar código.
+
+---
+
+## Multi-tenancy (corredurías) — IMPLEMENTADO y desplegado (2026-07-20)
+
+La app pasó de monopuesto a **multi-tenant**: varias corredurías aisladas por RLS,
+con super-admin (proveedor) que las provisiona y admins que gestionan sus agentes.
+Diseño en `docs/superpowers/specs/…`, plan en `docs/superpowers/plans/…`.
+
+- **Modelo**: tablas `corredurias` y `perfiles`; `correduria_id` en las 5 tablas de
+  datos; RLS que aísla por correduría y aplica el modo de visibilidad
+  (`compartida` / `por_agente`, lo decide el admin en `/equipo`).
+- **Roles**: super-admin (plataforma), admin (correduría), agente.
+- **`/admin`**: panel del super-admin para crear/listar corredurías + su primer admin.
+- **`/equipo`**: el admin crea agentes (email + contraseña temporal) y cambia la
+  visibilidad. Alta directa (sin email de invitación).
+- **Storage**: ruta `{correduria_id}/{cliente_id}/{archivo}`.
+- Migración `0006_multitenant.sql` aplicada. Verificación: `scripts/verify-rls.mjs`
+  (10 checks de aislamiento, todos ✓).
+
+### Credenciales
+- **Super-admin**: `jesvivlc+seguro@gmail.com` / `J26ywqOA1moztgkX` → entra en `/admin`.
+  Cámbiala. Desde ahí crea la correduría real de Sara.
+- **Datos DEMO** (contraseña de todos: `Demo1234!`) — creados con
+  `scripts/seed-demo.mjs`, borrables re-ejecutándolo o desactivando desde `/admin`:
+  - "DEMO Seguros Levante" (compartida): `demo.levante.admin@example.com` (admin),
+    `demo.levante.ana@example.com`, `demo.levante.luis@example.com` (agentes).
+  - "DEMO Correduría Norte" (por_agente): `demo.norte.admin@example.com` (admin),
+    `demo.norte.marta@example.com`, `demo.norte.pedro@example.com` (agentes).
+
+### Pendiente / notas
+- **Borrar datos DEMO** antes de que Sara empiece en serio (están aislados, no
+  contaminan su correduría, pero conviene limpiarlos): re-ejecutar `seed-demo.mjs`
+  los recrea limpios, o eliminar las corredurías "DEMO …" (cascada).
+- El seed **`supabase/seed.sql`** original (Fase 1) quedó **incompatible** con
+  multi-tenancy (no pone `correduria_id`); no usarlo. Los datos de prueba ahora
+  salen de `seed-demo.mjs`.
+- **Fase 2 (Bloque B)** sigue pendiente: comparador IA, portal cliente, siniestros,
+  WhatsApp/email, estadísticas. Se abordarán de una en una cuando lo decidas.
