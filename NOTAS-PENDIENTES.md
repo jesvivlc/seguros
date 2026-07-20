@@ -126,8 +126,13 @@ Diseño en `docs/superpowers/specs/…`, plan en `docs/superpowers/plans/…`.
   - ✅ **Siniestros** (2026-07-20): entidad `siniestros` ligada a póliza, pestaña en
     la ficha del cliente, lista global `/siniestros`, migración `0007`, misma RLS
     multi-tenant. Desplegado y verificado.
+  - ✅ **Estadísticas** (2026-07-20): panel `/estadisticas` (server-render, datos
+    aislados por correduría) con KPIs (clientes activos, pólizas vigentes, prima en
+    cartera, siniestros abiertos), semáforo de renovaciones, pólizas por tipo, top
+    compañías, prima por tipo y siniestros por estado. Gráficos de barras propios
+    (sin dependencias). Desplegado.
   - Pendientes: comparador de pólizas con IA · portal del cliente · integración
-    WhatsApp/email · estadísticas avanzadas. De una en una cuando lo decidas.
+    WhatsApp/email. De una en una cuando lo decidas.
 
 ## Aplicar migraciones sin pasos manuales
 Existe `scripts/apply-migration.mjs`: aplica un `.sql` vía la Management API de
