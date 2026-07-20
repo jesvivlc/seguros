@@ -122,5 +122,15 @@ Diseño en `docs/superpowers/specs/…`, plan en `docs/superpowers/plans/…`.
 - El seed **`supabase/seed.sql`** original (Fase 1) quedó **incompatible** con
   multi-tenancy (no pone `correduria_id`); no usarlo. Los datos de prueba ahora
   salen de `seed-demo.mjs`.
-- **Fase 2 (Bloque B)** sigue pendiente: comparador IA, portal cliente, siniestros,
-  WhatsApp/email, estadísticas. Se abordarán de una en una cuando lo decidas.
+- **Fase 2 (Bloque B)** — progreso:
+  - ✅ **Siniestros** (2026-07-20): entidad `siniestros` ligada a póliza, pestaña en
+    la ficha del cliente, lista global `/siniestros`, migración `0007`, misma RLS
+    multi-tenant. Desplegado y verificado.
+  - Pendientes: comparador de pólizas con IA · portal del cliente · integración
+    WhatsApp/email · estadísticas avanzadas. De una en una cuando lo decidas.
+
+## Aplicar migraciones sin pasos manuales
+Existe `scripts/apply-migration.mjs`: aplica un `.sql` vía la Management API de
+Supabase. Uso: `SUPABASE_ACCESS_TOKEN=sbp_… node scripts/apply-migration.mjs <fichero>`.
+El token se obtiene en https://supabase.com/dashboard/account/tokens y es revocable.
+(No se guarda en el repo; se pasa por variable de entorno.)
