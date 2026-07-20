@@ -5,6 +5,7 @@ import {
   ShieldAlert,
   CalendarDays,
   BarChart3,
+  Sparkles,
   Search,
   UserCog,
   type LucideIcon,
@@ -25,6 +26,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/siniestros", label: "Siniestros", icon: ShieldAlert, match: "/siniestros" },
   { href: "/agenda", label: "Agenda", icon: CalendarDays, match: "/agenda" },
   { href: "/estadisticas", label: "Estadísticas", icon: BarChart3, match: "/estadisticas" },
+  { href: "/comparador", label: "Comparador IA", icon: Sparkles, match: "/comparador" },
   { href: "/buscar", label: "Buscar", icon: Search, match: "/buscar" },
 ]
 
