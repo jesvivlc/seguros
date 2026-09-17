@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { rutaInternaSegura } from "@/lib/url"
 
 export interface LoginState {
   error: string | null
@@ -13,7 +14,7 @@ export async function login(
 ): Promise<LoginState> {
   const email = String(formData.get("email") ?? "").trim()
   const password = String(formData.get("password") ?? "")
-  const redirectTo = String(formData.get("redirect") ?? "/") || "/"
+  const redirectTo = rutaInternaSegura(String(formData.get("redirect") ?? ""))
 
   if (!email || !password) {
     return { error: "Introduce el email y la contraseña." }
@@ -26,8 +27,8 @@ export async function login(
     return { error: "Credenciales incorrectas. Revisa el email y la contraseña." }
   }
 
-  // Redirige a la ruta solicitada (o al dashboard). El redirect debe ser interno.
-  redirect(redirectTo.startsWith("/") ? redirectTo : "/")
+  // Redirige a la ruta solicitada (o al dashboard). Ya viene saneada.
+  redirect(redirectTo)
 }
 
 export async function logout() {
