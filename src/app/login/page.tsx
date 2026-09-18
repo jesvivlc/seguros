@@ -1,4 +1,5 @@
 import { Umbrella } from "lucide-react"
+import { rutaInternaSegura } from "@/lib/url"
 import { LoginForm } from "./login-form"
 
 export default async function LoginPage({
@@ -7,7 +8,7 @@ export default async function LoginPage({
   searchParams: Promise<{ redirect?: string }>
 }) {
   const { redirect } = await searchParams
-  const redirectTo = redirect && redirect.startsWith("/") ? redirect : "/"
+  const redirectTo = rutaInternaSegura(redirect)
 
   return (
     <main className="flex min-h-svh items-center justify-center bg-muted/40 p-4">
