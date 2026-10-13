@@ -1,7 +1,7 @@
 "use server"
 
 import { createAdminClient } from "@/lib/supabase/admin"
-import { enviarEmail, plantillaEmail } from "@/lib/email"
+import { enviarEmail, escaparHtml, plantillaEmail } from "@/lib/email"
 
 /**
  * Genera un enlace de recuperación (admin API) y lo envía por email con Resend.
@@ -28,7 +28,7 @@ export async function enviarRecuperacion(email: string): Promise<{ ok: boolean }
       html: plantillaEmail(
         "Restablece tu contraseña",
         `<p>Has solicitado restablecer tu contraseña. Pulsa el botón para elegir una nueva:</p>
-<p style="margin:20px 0"><a href="${link}" style="background:#18181b;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;display:inline-block">Cambiar contraseña</a></p>
+<p style="margin:20px 0"><a href="${escaparHtml(link)}" style="background:#18181b;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;display:inline-block">Cambiar contraseña</a></p>
 <p style="color:#71717a;font-size:12px">Si no lo solicitaste, ignora este email.</p>`
       ),
     })

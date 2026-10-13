@@ -39,12 +39,32 @@ export async function enviarEmail(
   }
 }
 
-/** Envoltorio HTML sencillo y sobrio para los emails del CRM. */
+/**
+ * Escapa un valor para interpolarlo en el HTML de un email.
+ *
+ * Los datos de clientes y pólizas los escribe el usuario de la app, y estos
+ * correos salen con el EMAIL_FROM del proyecto hacia los clientes de la
+ * correduría. Sin escapar, un `nombre` o una `compania` con HTML inyecta
+ * enlaces o contenido arbitrario en un correo de remitente legítimo.
+ */
+export function escaparHtml(valor: unknown): string {
+  return String(valor ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;")
+}
+
+/**
+ * Envoltorio HTML sencillo y sobrio para los emails del CRM.
+ * `titulo` se escapa; `cuerpo` es HTML y lo escapa quien lo construye.
+ */
 export function plantillaEmail(titulo: string, cuerpo: string): string {
   return `<!doctype html><html><body style="margin:0;background:#f4f4f5;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#18181b">
 <div style="max-width:520px;margin:0 auto;padding:24px">
   <div style="background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:24px">
-    <h1 style="margin:0 0 12px;font-size:18px">${titulo}</h1>
+    <h1 style="margin:0 0 12px;font-size:18px">${escaparHtml(titulo)}</h1>
     ${cuerpo}
   </div>
   <p style="color:#a1a1aa;font-size:12px;margin:16px 4px 0">CRM Correduría de Seguros</p>
