@@ -28,10 +28,15 @@ renovación a 30/7 días, alerta de fallo del cron, reset de contraseña).
 ## 🚦 Arranque a producción (config, no desarrollo)
 
 Antes de que una correduría real empiece a usarlo:
-1. **Desactivar el registro público** en Supabase Auth (`disable_signup: true`).
+1. (Hecho, 14-oct-2026) **Registro público desactivado** en Supabase Auth
+   (`disable_signup: true`). Verificado: un `signUp` con la anon key responde
+   `422 signup_disabled`. El alta desde `/equipo` y `/admin` sigue funcionando,
+   porque usa la admin API con `service_role`, que ignora esa opción.
 2. **Borrar los datos DEMO** (`node scripts/limpiar-demo.mjs`) y crear la correduría real
    desde `/admin`.
-3. **Rotar** las claves que pasaron por chat (Supabase access token, Anthropic, Resend).
+3. **Rotar** las claves que pasaron por chat (Supabase access token, Anthropic, Resend)
+   **y las contraseñas que estuvieron escritas en `NOTAS-PENDIENTES.md`** — este repo es
+   público, así que siguen en el historial de git aunque ya no estén en el fichero.
 4. (Hecho) `site_url` y Redirect URLs de Auth apuntando a producción.
 
 ---

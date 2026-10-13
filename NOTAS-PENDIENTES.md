@@ -106,9 +106,15 @@ Diseño en `docs/superpowers/specs/…`, plan en `docs/superpowers/plans/…`.
   (10 checks de aislamiento, todos ✓).
 
 ### Credenciales
-- **Super-admin**: `jesvivlc+seguro@gmail.com` / `J26ywqOA1moztgkX` → entra en `/admin`.
-  Cámbiala. Desde ahí crea la correduría real de Sara.
-- **Datos DEMO** (contraseña de todos: `Demo1234!`) — creados con
+> ⚠️ **Este repositorio es público: aquí no va ninguna contraseña.** Las que
+> estuvieron escritas en este documento (super-admin y datos DEMO) quedan en el
+> historial de git y deben considerarse comprometidas: hay que **rotarlas en
+> Supabase**, no basta con borrarlas de aquí. Las contraseñas vivas van en el
+> gestor de contraseñas, nunca en el repo.
+
+- **Super-admin**: `jesvivlc+seguro@gmail.com` → entra en `/admin`. Desde ahí se
+  crea la correduría real. Contraseña: en el gestor de contraseñas.
+- **Datos DEMO** — creados con
   `scripts/seed-demo.mjs`, borrables re-ejecutándolo o desactivando desde `/admin`:
   - "DEMO Seguros Levante" (compartida): `demo.levante.admin@example.com` (admin),
     `demo.levante.ana@example.com`, `demo.levante.luis@example.com` (agentes).
@@ -147,8 +153,8 @@ Diseño en `docs/superpowers/specs/…`, plan en `docs/superpowers/plans/…`.
 El portal expone datos de clientes a **logins externos**. El aislamiento se ha
 verificado a nivel de RLS (9/9 checks, contra la BD real), que es la frontera de
 seguridad real. Aun así, por ser una superficie externa, **conviene que lo revises**
-antes de dar accesos a clientes reales. Logins DEMO ya creados para probarlo (contraseña
-`Demo1234!`): `demo.portal.elena@example.com` (ve la cartera de Elena) y
+antes de dar accesos a clientes reales. Logins DEMO ya creados para probarlo
+(contraseña en el gestor): `demo.portal.elena@example.com` (ve la cartera de Elena) y
 `demo.portal.raul@example.com` (la de Raúl) — entra en producción y comprueba que cada
 uno solo ve lo suyo. Bórralos antes de producción real (junto con el resto de DEMO).
 
