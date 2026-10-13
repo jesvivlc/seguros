@@ -1,7 +1,8 @@
+import { timingSafeEqual } from "node:crypto"
 import { NextResponse, type NextRequest } from "next/server"
 import { addDays, format } from "date-fns"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { enviarEmail, plantillaEmail } from "@/lib/email"
+import { enviarEmail, escaparHtml, plantillaEmail } from "@/lib/email"
 import { hoyZona } from "@/lib/timezone"
 import { formatFecha } from "@/lib/format"
 import { TIPO_POLIZA_LABEL, type TipoPoliza } from "@/lib/constants"
@@ -42,11 +43,13 @@ async function enviarRecordatorios(supabase: Admin) {
     if (!email) continue
     const dias = p.fecha_vencimiento === d7 ? 7 : 30
     const corr = p.correduria?.nombre ?? "tu correduría"
-    const cuerpo = `<p>Hola ${p.cliente?.nombre ?? ""},</p>
-<p>Te recordamos que tu póliza <strong>${p.compania} · ${TIPO_POLIZA_LABEL[p.tipo]}</strong>
-(nº ${p.numero_poliza}) vence el <strong>${formatFecha(p.fecha_vencimiento)}</strong>
+    // Todo lo que sale de la BD va escapado: lo escribe el usuario de la app y
+    // esto es HTML de un correo que firma la correduría.
+    const cuerpo = `<p>Hola ${escaparHtml(p.cliente?.nombre)},</p>
+<p>Te recordamos que tu póliza <strong>${escaparHtml(p.compania)} · ${TIPO_POLIZA_LABEL[p.tipo]}</strong>
+(nº ${escaparHtml(p.numero_poliza)}) vence el <strong>${formatFecha(p.fecha_vencimiento)}</strong>
 (en ${dias} días).</p>
-<p>Si quieres renovarla o revisar las condiciones, contacta con <strong>${corr}</strong>.</p>`
+<p>Si quieres renovarla o revisar las condiciones, contacta con <strong>${escaparHtml(corr)}</strong>.</p>`
     const res = await enviarEmail({
       to: email,
       subject: `Tu póliza ${p.compania} vence el ${formatFecha(p.fecha_vencimiento)}`,
@@ -58,10 +61,18 @@ async function enviarRecordatorios(supabase: Admin) {
   return { enviados, fallidos }
 }
 
+/** Compara en tiempo constante, sin delatar el prefijo acertado. */
+function secretoValido(auth: string | null, secret: string): boolean {
+  if (!auth) return false
+  const a = Buffer.from(auth)
+  const b = Buffer.from(`Bearer ${secret}`)
+  return a.length === b.length && timingSafeEqual(a, b)
+}
+
 export async function GET(request: NextRequest) {
   const secret = process.env.CRON_SECRET
-  const auth = request.headers.get("authorization")
-  if (!secret || auth !== `Bearer ${secret}`) {
+  // Sin secreto configurado, falla cerrado.
+  if (!secret || !secretoValido(request.headers.get("authorization"), secret)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   }
 
@@ -72,30 +83,37 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase.rpc("run_daily_jobs")
 
     if (error) {
+      // El message de Postgres arrastra nombres de constraint y trozos de la
+      // fila conflictiva, que aquí serían datos de clientes. El detalle se
+      // queda en el log del servidor; fuera va el código y nada más.
+      console.error("run_daily_jobs falló:", error)
       if (alertTo) {
         await enviarEmail({
           to: alertTo,
           subject: "⚠️ Fallo del job diario del CRM",
           html: plantillaEmail(
             "Fallo del job diario",
-            `<p>La función <code>run_daily_jobs</code> ha fallado:</p><pre style="background:#f4f4f5;padding:12px;border-radius:8px;white-space:pre-wrap">${error.message}</pre>`
+            `<p>La función <code>run_daily_jobs</code> ha fallado con el código
+<code>${escaparHtml(error.code ?? "desconocido")}</code>. El detalle está en los
+logs de la función en Vercel.</p>`
           ),
         })
       }
-      return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
+      return NextResponse.json({ ok: false, error: error.code ?? "db_error" }, { status: 500 })
     }
 
     const recordatorios = await enviarRecordatorios(supabase)
     return NextResponse.json({ ok: true, resultado: data, recordatorios })
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Error desconocido"
+    console.error("Error en el cron de renovaciones:", e)
     if (alertTo) {
       await enviarEmail({
         to: alertTo,
         subject: "⚠️ Error en el cron del CRM",
-        html: plantillaEmail("Error en el cron", `<pre>${msg}</pre>`),
+        html: plantillaEmail("Error en el cron", `<pre>${escaparHtml(msg)}</pre>`),
       })
     }
-    return NextResponse.json({ ok: false, error: msg }, { status: 500 })
+    return NextResponse.json({ ok: false, error: "cron_error" }, { status: 500 })
   }
 }
