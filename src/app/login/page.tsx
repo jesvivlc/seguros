@@ -5,7 +5,9 @@ import { LoginForm } from "./login-form"
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ redirect?: string }>
+  // Repetido en la URL, Next entrega un array; el tipo lo refleja y
+  // rutaInternaSegura() lo descarta.
+  searchParams: Promise<{ redirect?: string | string[] }>
 }) {
   const { redirect } = await searchParams
   const redirectTo = rutaInternaSegura(redirect)

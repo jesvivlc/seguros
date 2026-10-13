@@ -13,8 +13,14 @@ const BASE_INTERNA = "https://interno.invalid"
  * Y se valida también la salida: al resolver se eliminan los segmentos "..", así
  * que "/..//evil.com" se queda dentro de la base pero sale como "//evil.com".
  */
-export function rutaInternaSegura(destino: string | null | undefined): string {
-  if (!destino || !destino.startsWith("/")) return "/"
+export function rutaInternaSegura(
+  destino: string | string[] | null | undefined
+): string {
+  // Un parámetro repetido ("?redirect=/a&redirect=/b") llega como array, y
+  // entonces `destino.startsWith` no existe: sin esta comprobación es un
+  // TypeError sin capturar al renderizar /login, o sea un 500 en una página
+  // pública. No es una fuga de origen, pero es trivial de provocar.
+  if (typeof destino !== "string" || !destino.startsWith("/")) return "/"
 
   let url: URL
   try {
