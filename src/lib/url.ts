@@ -9,6 +9,9 @@ const BASE_INTERNA = "https://interno.invalid"
  * resolver, la barra invertida cuenta como barra, así que "/\evil.com" hace lo
  * mismo. En vez de ir tapando formas una a una, se resuelve el destino contra
  * una base propia y se comprueba que no se haya salido de ella.
+ *
+ * Y se valida también la salida: al resolver se eliminan los segmentos "..", así
+ * que "/..//evil.com" se queda dentro de la base pero sale como "//evil.com".
  */
 export function rutaInternaSegura(destino: string | null | undefined): string {
   if (!destino || !destino.startsWith("/")) return "/"
@@ -21,5 +24,7 @@ export function rutaInternaSegura(destino: string | null | undefined): string {
   }
 
   if (url.origin !== BASE_INTERNA) return "/"
-  return `${url.pathname}${url.search}${url.hash}`
+
+  const ruta = `${url.pathname}${url.search}${url.hash}`
+  return ruta.startsWith("//") ? "/" : ruta
 }
