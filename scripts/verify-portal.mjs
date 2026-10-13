@@ -21,7 +21,9 @@ const BASE = process.env.NEXT_PUBLIC_SUPABASE_URL
 const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const SVC = process.env.SUPABASE_SERVICE_ROLE_KEY
 const sb = createClient(BASE, SVC, { auth: { autoRefreshToken: false, persistSession: false } })
-const P = "Demo1234!"
+// La contraseña de las cuentas DEMO sale del entorno, no del repo (público).
+const P = process.env.DEMO_PASSWORD
+if (!P) { console.error("Falta DEMO_PASSWORD (ver .env.example)"); process.exit(1) }
 
 let fallos = 0
 function check(desc, real, esperado) {
