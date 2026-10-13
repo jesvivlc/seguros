@@ -33,19 +33,41 @@ if (!url || !key) { console.error("Faltan credenciales en .env.local"); process.
 // explícito porque aquí no hay RLS que acote nada.
 const sb = createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } })
 
+// Escribe con service_role y empieza BORRANDO la correduría de pruebas anterior
+// en cascada. Para que no se lance por error contra un proyecto que no toca,
+// exige confirmación explícita y dice a qué proyecto va.
+const REF = (/https:\/\/([a-z0-9]+)\.supabase\.co/.exec(url) ?? [])[1] ?? url
+if (process.env.SEED_CONFIRM !== "1") {
+  console.error(`Este script BORRA y recrea la correduría de pruebas en el proyecto: ${REF}`)
+  console.error("Si es el proyecto correcto, relánzalo con SEED_CONFIRM=1")
+  process.exit(1)
+}
+
 const CORREDURIA = "Correduría Mediterráneo (PRUEBAS)"
+// La marca de "esto es la semilla" es el CIF, no el nombre: el nombre lo puede
+// editar cualquier admin desde /equipo, y entonces el borrado de la tirada
+// anterior apuntaría a una correduría que no es esta. El CIF no se toca desde
+// la UI y lo fija este script.
+const CIF_SEMILLA = "B54872310"
 // La contraseña NO se versiona: este repositorio es público. Se toma de
 // SEED_PASSWORD y, si no está, se genera al azar y se imprime al terminar.
 const PASSWORD = process.env.SEED_PASSWORD || `Pr${randomBytes(9).toString("base64url")}!`
 const BUCKET = "documentos"
 
-// Emails: subdirecciones de la cuenta del titular, para que los recordatorios de
-// renovación lleguen a una bandeja real y NO reboten. Nada de @example.com en
-// clientes: un rebote de Resend desgasta la reputación del dominio de envío.
-const EMAIL_ADMIN  = "jesvivlc+pruebas@gmail.com"
-const EMAIL_AGENTE = "jesvivlc+agente@gmail.com"
-const EMAIL_PORTAL = "jesvivlc+portal@gmail.com"
+// Emails de los tres logins. Salen del entorno para no publicar direcciones
+// reales en un repo público; por defecto, @example.com.
+const EMAIL_ADMIN  = process.env.SEED_EMAIL_ADMIN  || "pruebas.admin@example.com"
+const EMAIL_AGENTE = process.env.SEED_EMAIL_AGENTE || "pruebas.agente@example.com"
+const EMAIL_PORTAL = process.env.SEED_EMAIL_PORTAL || "pruebas.portal@example.com"
 const MIOS = [EMAIL_ADMIN, EMAIL_AGENTE, EMAIL_PORTAL]
+
+// Las dos pólizas que vencen a 30 y 7 días son las que dispara el cron de
+// recordatorios. Si se dan direcciones reales en el entorno, esos dos clientes
+// las llevan y el correo se puede ver de verdad; si no, se siembran SIN email y
+// el cron los salta. Nunca @example.com en un cliente con vencimiento en la
+// ventana: Resend rebotaría y eso desgasta la reputación del dominio de envío.
+const EMAIL_AVISO_7  = process.env.SEED_EMAIL_AVISO_7 || null
+const EMAIL_AVISO_30 = process.env.SEED_EMAIL_AVISO_30 || null
 
 const iso = (d) => d.toISOString().slice(0, 10)
 const hoy = new Date()
@@ -61,15 +83,34 @@ const dni = (n) => `${n}${"TRWAGMYFPDXBNJZSQVHLCKE"[Number(n) % 23]}`
 // ---------------------------------------------------------------------------
 // Limpieza de la tirada anterior
 // ---------------------------------------------------------------------------
-const { data: prev } = await sb.from("corredurias").select("id").ilike("nombre", "%(PRUEBAS)%")
-for (const c of prev ?? []) {
-  const { data: objs } = await sb.storage.from(BUCKET).list(c.id, { limit: 1000 })
-  for (const carpeta of objs ?? []) {
-    const { data: files } = await sb.storage.from(BUCKET).list(`${c.id}/${carpeta.name}`, { limit: 1000 })
-    const rutas = (files ?? []).map((f) => `${c.id}/${carpeta.name}/${f.name}`)
-    if (rutas.length) await sb.storage.from(BUCKET).remove(rutas)
+/** Lista una carpeta del bucket entera, paginando. */
+async function listarTodo(prefijo) {
+  const todo = []
+  for (let offset = 0; ; offset += 100) {
+    const { data, error } = await sb.storage.from(BUCKET).list(prefijo, { limit: 100, offset })
+    if (error) throw new Error(`storage list ${prefijo}: ${error.message}`)
+    todo.push(...(data ?? []))
+    if ((data ?? []).length < 100) return todo
   }
-  await sb.from("corredurias").delete().eq("id", c.id)   // cascada al resto
+}
+
+// Se busca por CIF, no por nombre (ver CIF_SEMILLA). Si el select falla, se
+// aborta: con `prev ?? []` un error dejaría el bucle vacío en silencio y el
+// script crearía una segunda correduría de pruebas duplicada.
+const { data: prev, error: ePrev } = await sb.from("corredurias").select("id,nombre").eq("cif", CIF_SEMILLA)
+if (ePrev) { console.error(`No se pudo buscar la correduría de pruebas previa: ${ePrev.message}`); process.exit(1) }
+for (const c of prev ?? []) {
+  console.log(`borrando la tirada anterior: ${c.nombre} (${c.id})`)
+  for (const carpeta of await listarTodo(c.id)) {
+    const ficheros = await listarTodo(`${c.id}/${carpeta.name}`)
+    const rutas = ficheros.map((f) => `${c.id}/${carpeta.name}/${f.name}`)
+    if (rutas.length) {
+      const { error } = await sb.storage.from(BUCKET).remove(rutas)
+      if (error) throw new Error(`storage remove: ${error.message}`)
+    }
+  }
+  const { error } = await sb.from("corredurias").delete().eq("id", c.id)   // cascada al resto
+  if (error) throw new Error(`borrado de ${c.id}: ${error.message}`)
 }
 const { data: usuarios } = await sb.auth.admin.listUsers({ page: 1, perPage: 1000 })
 for (const u of usuarios?.users ?? []) {
@@ -133,7 +174,7 @@ async function subirDocumento(correduria_id, agenteId, cliente_id, poliza_id, ca
 // Correduría y usuarios
 // ---------------------------------------------------------------------------
 const { data: corr, error: eCorr } = await sb.from("corredurias")
-  .insert({ nombre: CORREDURIA, cif: "B54872310", visibilidad: "compartida", activa: true })
+  .insert({ nombre: CORREDURIA, cif: CIF_SEMILLA, visibilidad: "compartida", activa: true })
   .select("id").single()
 if (eCorr) throw new Error(`correduria: ${eCorr.message}`)
 const C = corr.id
@@ -196,7 +237,7 @@ const CARTERA = [
       { c: "Catalana Occidente", num: "HOG-0098441", t: "hogar", ef: -210, v: 155, p: 312.4, fp: "semestral" },
       { c: "Adeslas", num: "SAL-77120934", t: "salud", ef: -400, v: 330, p: 1284.0, fp: "mensual" },
     ] },
-  { n: "Jorge", a: "Ramírez Peiró", d: "21874390", nac: "1986-03-22", tel: "655 120 744", em: "jesvivlc+jorge@gmail.com",
+  { n: "Jorge", a: "Ramírez Peiró", d: "21874390", nac: "1986-03-22", tel: "655 120 744", em: EMAIL_AVISO_7,
     dir: "Avda. de la Constitución 88", cp: "03201", pob: "Elche", prov: "Alicante", prof: "Autónomo (fontanería)",
     civ: "Casado/a", est: "activo", org: "Web", ag: "carlos",
     pol: [
@@ -257,7 +298,7 @@ const CARTERA = [
     dir: "C/ Sant Pere 8", cp: "03680", pob: "Aspe", prov: "Alicante", prof: "Mecánico",
     civ: "Soltero/a", est: "activo", org: "Campaña auto", ag: "sara",
     pol: [{ c: "Reale", num: "RE-0077129", t: "auto", mat: "6654 NBT", ef: -60, v: 305, p: 467.3, fp: "anual" }] },
-  { n: "Pilar", a: "Climent Orozco", d: "31008476", nac: "1981-05-19", tel: "650 773 004", em: "jesvivlc+pilar@gmail.com",
+  { n: "Pilar", a: "Climent Orozco", d: "31008476", nac: "1981-05-19", tel: "650 773 004", em: EMAIL_AVISO_30,
     dir: "C/ Benissa 3", cp: "03720", pob: "Benissa", prov: "Alicante", prof: "Enfermera",
     civ: "Casado/a", est: "activo", org: "Recomendación de cliente", ag: "carlos",
     pol: [
@@ -416,7 +457,9 @@ console.log(JSON.stringify({
   correduria: { id: C, nombre: CORREDURIA, visibilidad: "compartida" },
   accesos: {
     admin: EMAIL_ADMIN, agente: EMAIL_AGENTE, portal: `${EMAIL_PORTAL} (ve la cartera de María López)`,
-    password: PASSWORD,
+    // Solo se imprime la generada al azar, que no está en ningún otro sitio. Si
+    // viene de SEED_PASSWORD, no se vuelca: acabaría en logs de CI o en un chat.
+    password: process.env.SEED_PASSWORD ? "(la de SEED_PASSWORD)" : PASSWORD,
   },
   sembrado: {
     clientes: CARTERA.length,
