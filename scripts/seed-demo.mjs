@@ -21,7 +21,10 @@ const key = process.env.SUPABASE_SERVICE_ROLE_KEY
 if (!url || !key) { console.error("Faltan credenciales"); process.exit(1) }
 const sb = createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } })
 
-const PASSWORD = "Demo1234!"
+// La contraseña NO se versiona: este repositorio es público. Se pone en
+// .env.local como DEMO_PASSWORD (ver .env.example).
+const PASSWORD = process.env.DEMO_PASSWORD
+if (!PASSWORD) { console.error("Falta DEMO_PASSWORD (ver .env.example)"); process.exit(1) }
 const iso = (d) => d.toISOString().slice(0, 10)
 const hoy = new Date()
 const enDias = (n) => { const d = new Date(hoy); d.setDate(d.getDate() + n); return iso(d) }

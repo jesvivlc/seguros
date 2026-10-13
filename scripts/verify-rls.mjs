@@ -45,7 +45,9 @@ function check(desc, real, esperado) {
   if (!ok) console.log(`    esperado ${JSON.stringify(esperado)}, obtenido ${JSON.stringify(real)}`)
 }
 
-const P = "Demo1234!"
+// La contraseña de las cuentas DEMO sale del entorno, no del repo (público).
+const P = process.env.DEMO_PASSWORD
+if (!P) { console.error("Falta DEMO_PASSWORD (ver .env.example)"); process.exit(1) }
 
 // Correduría A (compartida): los agentes ven TODA la cartera de A (2 clientes).
 const ana = await verClientes(await login("demo.levante.ana@example.com", P))
@@ -73,11 +75,18 @@ const idsA = new Set(ana.map((c) => c.id))
 check("Aislamiento: ningún cliente de B aparece en la vista de A", adminB.some((c) => idsA.has(c.id)), false)
 
 // Super-admin: NO tiene acceso a datos de clientes.
+// Credenciales del entorno (SUPERADMIN_EMAIL / SUPERADMIN_PASSWORD). Si no están,
+// este check se omite: nunca van escritas en el repo, que es público.
 try {
-  const sa = await verClientes(await login("jesvivlc+seguro@gmail.com", "J26ywqOA1moztgkX"))
+  if (!process.env.SUPERADMIN_EMAIL || !process.env.SUPERADMIN_PASSWORD) {
+    throw new Error("sin credenciales de super-admin en el entorno")
+  }
+  const sa = await verClientes(
+    await login(process.env.SUPERADMIN_EMAIL, process.env.SUPERADMIN_PASSWORD)
+  )
   check("Super-admin: no ve ningún cliente (sin acceso a datos)", Array.isArray(sa) ? sa.length : 0, 0)
 } catch {
-  console.log("… (super-admin: login omitido, contraseña cambiada)")
+  console.log("… (super-admin: check omitido — sin credenciales en el entorno o contraseña cambiada)")
 }
 
 console.log("")

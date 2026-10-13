@@ -111,6 +111,11 @@ Diseño en `docs/superpowers/specs/…`, plan en `docs/superpowers/plans/…`.
 > historial de git y deben considerarse comprometidas: hay que **rotarlas en
 > Supabase**, no basta con borrarlas de aquí. Las contraseñas vivas van en el
 > gestor de contraseñas, nunca en el repo.
+>
+> Los scripts ya no las llevan escritas: `seed-demo.mjs`, `verify-rls.mjs` y
+> `verify-portal.mjs` leen `DEMO_PASSWORD` de `.env.local` y abortan si falta;
+> el check de super-admin de `verify-rls.mjs` usa `SUPERADMIN_EMAIL` /
+> `SUPERADMIN_PASSWORD` y se omite si no están. Ver `.env.example`.
 
 - **Super-admin**: `jesvivlc+seguro@gmail.com` → entra en `/admin`. Desde ahí se
   crea la correduría real. Contraseña: en el gestor de contraseñas.
