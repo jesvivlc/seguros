@@ -25,7 +25,13 @@ create trigger trg_comparativas_updated_at before update on public.comparativas
 
 alter table public.comparativas enable row level security;
 drop policy if exists comparativas_correduria on public.comparativas;
-create policy comparativas_correduria on public.comparativas for all
+drop policy if exists comparativas_select on public.comparativas;
+drop policy if exists comparativas_insert on public.comparativas;
+drop policy if exists comparativas_update on public.comparativas;
+drop policy if exists comparativas_delete on public.comparativas;
+
+-- Lectura: misma regla de visibilidad que el resto de tablas.
+create policy comparativas_select on public.comparativas for select
   using (
     correduria_id = public.mi_correduria()
     and (
@@ -33,13 +39,31 @@ create policy comparativas_correduria on public.comparativas for all
       or user_id = auth.uid()
       or public.mi_rol() = 'admin'
     )
-  )
+  );
+
+-- Escritura: solo la autora (o un admin), aunque la correduría sea «compartida».
+create policy comparativas_insert on public.comparativas for insert
   with check (
     correduria_id = public.mi_correduria()
     and user_id = auth.uid()
-    -- El cliente enlazado debe ser visible para quien guarda (RLS de clientes).
     and (
       cliente_id is null
-      or exists (select 1 from public.clientes c where c.id = cliente_id)
+      or exists (
+        select 1 from public.clientes c
+        where c.id = cliente_id and c.correduria_id = comparativas.correduria_id
+      )
     )
+  );
+
+create policy comparativas_update on public.comparativas for update
+  using (
+    correduria_id = public.mi_correduria()
+    and (user_id = auth.uid() or public.mi_rol() = 'admin')
+  )
+  with check (correduria_id = public.mi_correduria());
+
+create policy comparativas_delete on public.comparativas for delete
+  using (
+    correduria_id = public.mi_correduria()
+    and (user_id = auth.uid() or public.mi_rol() = 'admin')
   );

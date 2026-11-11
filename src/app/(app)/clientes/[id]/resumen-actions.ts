@@ -55,7 +55,7 @@ export async function resumirCliente(clienteId: string): Promise<ResumenResult> 
       .order("fecha_vencimiento", { ascending: true }),
     supabase
       .from("interacciones")
-      .select("tipo, resumen, detalle, fecha")
+      .select("tipo, resumen, fecha")
       .eq("cliente_id", clienteId)
       .order("fecha", { ascending: false })
       .limit(MAX_INTERACCIONES),
@@ -74,7 +74,12 @@ export async function resumirCliente(clienteId: string): Promise<ResumenResult> 
 
   const nombres = [cliente.nombre, cliente.apellidos]
   const limpio = (t: string | null | undefined) =>
-    anonimizar((t ?? "").slice(0, MAX_TEXTO), nombres).replace(/\s+/g, " ").trim()
+    anonimizar((t ?? "").slice(0, MAX_TEXTO), nombres)
+      .replace(/\s+/g, " ")
+      // Evita que una nota cierre el bloque <datos> y se cuele como instrucción.
+      .replace(/</g, "‹")
+      .replace(/>/g, "›")
+      .trim()
 
   // Edad aproximada en lugar de la fecha de nacimiento.
   const edad = cliente.fecha_nacimiento
@@ -104,8 +109,8 @@ export async function resumirCliente(clienteId: string): Promise<ResumenResult> 
     ultimas_interacciones: (inter ?? []).map((i) => ({
       fecha: String(i.fecha).slice(0, 10),
       tipo: TIPO_INTERACCION_LABEL[i.tipo as TipoInteraccion],
+      // Solo el resumen corto: el detalle es texto libre largo con más riesgo de datos personales.
       resumen: limpio(i.resumen),
-      detalle: limpio(i.detalle),
     })),
   }
 

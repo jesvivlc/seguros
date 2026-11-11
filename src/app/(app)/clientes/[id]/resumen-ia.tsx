@@ -35,9 +35,10 @@ export function ResumenIa({ clienteId }: { clienteId: string }) {
           <CardContent className="grid gap-2 pt-4">
             <p className="text-sm whitespace-pre-wrap">{texto}</p>
             <p className="text-muted-foreground text-xs">
-              Generado por IA a partir del historial; revísalo antes de fiarte. Al generarlo
-              no se envían el nombre, el documento ni los datos de contacto del cliente, y se
-              redactan esos datos también en las notas.
+              Generado por IA a partir del historial; revísalo antes de fiarte. No se envían el
+              nombre, el documento ni los datos de contacto del cliente, y se intentan redactar los
+              datos habituales de las notas (teléfonos, correos, direcciones…), pero evita escribir
+              datos personales de terceros o de menores en las notas.
             </p>
           </CardContent>
         </Card>

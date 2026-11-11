@@ -11,8 +11,24 @@ const IBAN = /\b[A-Za-z]{2}\d{2}(?:[\s-]?\d{4}){4,7}(?:[\s-]?\d{1,4})?\b/g
 // Matrículas actuales (1234 ABC).
 const MATRICULA = /\b\d{4}[\s-]?[B-DF-HJ-NP-TV-Z]{3}\b/g
 
-function escapar(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+// Direcciones: tipo de vía + resto hasta coma/punto y coma/punto; y «CP 46001».
+const DIRECCION =
+  /\b(?:c\/|calle|avda\.?|avenida|plaza|pza\.?|paseo|camino|carretera|ronda|travesía|urbanización)\s+[^,;.\n]{1,60}/giu
+const CODIGO_POSTAL = /\b(?:c\.?\s?p\.?|código postal)\s*:?\s*\d{5}\b/giu
+
+const ACENTOS: Record<string, string> = {
+  a: "aáàäâ", e: "eéèëê", i: "iíìïî", o: "oóòöô", u: "uúùüû", n: "nñ",
+}
+
+/** Patrón de una palabra que ignora mayúsculas y acentos (José = Jose = JOSÉ). */
+function patronPalabra(palabra: string): string {
+  return palabra
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .split("")
+    .map((ch) => (ACENTOS[ch] ? `[${ACENTOS[ch]}]` : ch.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
+    .join("")
 }
 
 /**
@@ -26,6 +42,8 @@ export function anonimizar(texto: string, nombres: string[] = []): string {
     .replace(DNI_NIE, "[documento]")
     .replace(MATRICULA, "[matrícula]")
     .replace(TELEFONO, "[teléfono]")
+    .replace(CODIGO_POSTAL, "[cp]")
+    .replace(DIRECCION, "[dirección]")
   const palabras = [
     ...new Set(
       nombres
@@ -35,7 +53,7 @@ export function anonimizar(texto: string, nombres: string[] = []): string {
     ),
   ]
   if (palabras.length > 0) {
-    const re = new RegExp(`(?<![\\p{L}])(?:${palabras.map(escapar).join("|")})(?![\\p{L}])`, "giu")
+    const re = new RegExp(`(?<![\\p{L}])(?:${palabras.map(patronPalabra).join("|")})(?![\\p{L}])`, "giu")
     out = out.replace(re, "el cliente")
   }
   return out

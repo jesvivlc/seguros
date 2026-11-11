@@ -97,6 +97,10 @@ check(
   anonimizar("María López llamó; Lópezmar no", ["María", "López"]),
   "el cliente el cliente llamó; Lópezmar no"
 )
+check("nombre sin tilde vs con tilde", anonimizar("llamó Jose Garcia", ["José", "García"]), "llamó el cliente el cliente")
+check("nombre en mayúsculas", anonimizar("MARIA llamó", ["María"]), "el cliente llamó")
+check("dirección", anonimizar("vive en calle Mayor 12, piso 3"), "vive en [dirección], piso 3")
+check("código postal", anonimizar("CP 46001 Valencia"), "[cp] Valencia")
 check("sin datos", anonimizar("Renovación pendiente de revisar"), "Renovación pendiente de revisar")
 
 console.log(fallos === 0 ? "\nTodo correcto." : `\n${fallos} fallo(s).`)
