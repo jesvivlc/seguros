@@ -1,11 +1,20 @@
 import { Users, FileText, Euro, ShieldAlert } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
+import Link from "next/link"
 import { requireUser } from "@/lib/auth"
 import { PageHeader } from "@/components/layout/page-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BarList, type BarItem } from "@/components/charts/bar-list"
 import { calcularSemaforo } from "@/lib/semaforo"
-import { formatEuros } from "@/lib/format"
+import { formatEuros, formatFecha } from "@/lib/format"
+import { hoyISOZona } from "@/lib/timezone"
+import {
+  renovacionesPorMes,
+  estacionalidad,
+  primaMediaPorTipo,
+  vencenEn,
+  type PolizaCartera,
+} from "@/lib/estadisticas"
 import {
   TIPO_POLIZA_LABEL,
   ESTADO_SINIESTRO_LABEL,
@@ -17,6 +26,8 @@ import {
 export const dynamic = "force-dynamic"
 
 type PolizaStat = {
+  id: string
+  fecha_efecto: string
   tipo: TipoPoliza
   compania: string | null
   estado: EstadoPoliza
@@ -72,7 +83,9 @@ export default async function EstadisticasPage() {
   const [{ data: cliData }, { data: polData }, { data: sinData }, { count: tareasPend }] =
     await Promise.all([
       supabase.from("clientes").select("estado"),
-      supabase.from("polizas").select("tipo, compania, estado, prima_anual, fecha_vencimiento"),
+      supabase
+        .from("polizas")
+        .select("id, tipo, compania, estado, prima_anual, fecha_efecto, fecha_vencimiento"),
       supabase.from("siniestros").select("estado, importe_estimado, importe_indemnizado"),
       supabase
         .from("tareas")
@@ -137,6 +150,29 @@ export default async function EstadisticasPage() {
     value: siniestros.filter((s) => s.estado === e).length,
     color: SINIESTRO_BAR[e],
   })).filter((b) => b.value > 0)
+
+  // Cartera ampliada: renovaciones, estacionalidad, prima media y próximos 90 días
+  const hoy = hoyISOZona()
+  const cartera = polizas as unknown as PolizaCartera[]
+  const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
+  const mesesRenov = renovacionesPorMes(cartera, hoy, 12)
+  const renovPorMes: BarItem[] = mesesRenov.map((m) => ({
+    label: `${MESES[Number(m.mes.slice(5)) - 1]} ${m.mes.slice(2, 4)}`,
+    value: m.polizas,
+  }))
+  const primaPorMes: BarItem[] = mesesRenov.map((m) => ({
+    label: `${MESES[Number(m.mes.slice(5)) - 1]} ${m.mes.slice(2, 4)}`,
+    value: m.prima,
+  }))
+  const estacional: BarItem[] = estacionalidad(cartera).map((value, i) => ({
+    label: MESES[i],
+    value,
+  }))
+  const mediaPorTipo: BarItem[] = primaMediaPorTipo(cartera).map((x) => ({
+    label: `${TIPO_POLIZA_LABEL[x.tipo]} (${x.polizas})`,
+    value: x.media,
+  }))
+  const proximas = vencenEn(cartera, hoy, 90)
 
   const importeEstimado = siniestros.reduce((s, x) => s + (x.importe_estimado ?? 0), 0)
   const importeIndemnizado = siniestros.reduce((s, x) => s + (x.importe_indemnizado ?? 0), 0)
@@ -205,7 +241,52 @@ export default async function EstadisticasPage() {
             </p>
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader><CardTitle>Renovaciones en los próximos 12 meses</CardTitle></CardHeader>
+          <CardContent><BarList items={renovPorMes} /></CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle>Prima que vence cada mes</CardTitle></CardHeader>
+          <CardContent><BarList items={primaPorMes} formatValue={formatEuros} /></CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle>Estacionalidad (vencimientos por mes del año)</CardTitle></CardHeader>
+          <CardContent><BarList items={estacional} /></CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle>Prima media por ramo (vigentes, nº de pólizas)</CardTitle></CardHeader>
+          <CardContent><BarList items={mediaPorTipo} formatValue={formatEuros} /></CardContent>
+        </Card>
       </div>
+
+      <Card className="mt-3">
+        <CardHeader>
+          <CardTitle>Vencen en los próximos 90 días ({proximas.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {proximas.length === 0 ? (
+            <p className="text-muted-foreground text-sm">Ninguna póliza vence en ese plazo.</p>
+          ) : (
+            <ul className="divide-y text-sm">
+              {proximas.map((p) => (
+                <li key={p.id}>
+                  <Link
+                    href={`/polizas/${p.id}`}
+                    className="hover:bg-muted/50 flex items-center justify-between gap-3 py-2"
+                  >
+                    <span className="min-w-0 truncate">
+                      {TIPO_POLIZA_LABEL[p.tipo]} · {p.compania ?? "—"}
+                    </span>
+                    <span className="text-muted-foreground shrink-0 tabular-nums">
+                      {formatEuros(p.prima_anual)} · {formatFecha(p.fecha_vencimiento)}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
     </>
   )
 }

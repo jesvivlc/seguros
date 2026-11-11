@@ -1,33 +1,30 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { toast } from "sonner"
-import { UploadCloud, Loader2, Sparkles, FileText, X, Lightbulb } from "lucide-react"
+import { UploadCloud, Loader2, Sparkles, FileText, X, Save } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { Input } from "@/components/ui/input"
+import { ComparativaView } from "@/components/comparativa-view"
+import { ClienteCombobox, type ClienteOpcion } from "@/components/cliente-combobox"
+import type { ComparativaDatos } from "@/lib/database.types"
+import { guardarComparativa } from "./actions"
 
-interface Comparativa {
-  polizas: { etiqueta: string; compania: string; tipo: string; prima_anual: string }[]
-  filas: { concepto: string; valores: string[]; observacion: string }[]
-  diferencias_clave: string[]
-  recomendacion: string
-}
-
-export function ComparadorClient() {
+export function ComparadorClient({ clientes }: { clientes: ClienteOpcion[] }) {
   const inputRef = React.useRef<HTMLInputElement>(null)
   const [files, setFiles] = React.useState<File[]>([])
   const [dragOver, setDragOver] = React.useState(false)
   const [cargando, setCargando] = React.useState(false)
-  const [res, setRes] = React.useState<Comparativa | null>(null)
+  const [res, setRes] = React.useState<ComparativaDatos | null>(null)
+
+  // Guardado
+  const [titulo, setTitulo] = React.useState("")
+  const [clienteId, setClienteId] = React.useState<string | null>(null)
+  const [guardando, setGuardando] = React.useState(false)
+  const [guardadaId, setGuardadaId] = React.useState<string | null>(null)
 
   function añadir(nuevos: FileList | File[]) {
     const pdfs = Array.from(nuevos).filter((f) => f.type === "application/pdf")
@@ -47,6 +44,7 @@ export function ComparadorClient() {
     }
     setCargando(true)
     setRes(null)
+    setGuardadaId(null)
     const fd = new FormData()
     for (const f of files) fd.append("pdfs", f)
     try {
@@ -56,13 +54,30 @@ export function ComparadorClient() {
         toast.error(data.error ?? "No se pudo comparar.")
         return
       }
-      setRes(data.comparativa as Comparativa)
+      const comparativa = data.comparativa as ComparativaDatos
+      setRes(comparativa)
+      setTitulo(
+        `Comparativa ${comparativa.polizas.map((p) => p.compania).join(" / ")}`.slice(0, 200)
+      )
       toast.success("Comparativa generada")
     } catch {
       toast.error("Error de red al comparar.")
     } finally {
       setCargando(false)
     }
+  }
+
+  async function guardar() {
+    if (!res) return
+    setGuardando(true)
+    const r = await guardarComparativa({ titulo, cliente_id: clienteId, datos: res })
+    setGuardando(false)
+    if (!r.ok) {
+      toast.error(r.error ?? "No se pudo guardar.")
+      return
+    }
+    setGuardadaId(r.id ?? null)
+    toast.success("Comparativa guardada")
   }
 
   return (
@@ -156,74 +171,57 @@ export function ComparadorClient() {
       {/* Resultado */}
       {res && (
         <div className="grid gap-4">
-          <div className="rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-56">Cobertura</TableHead>
-                  {res.polizas.map((p, i) => (
-                    <TableHead key={i}>
-                      <div className="font-medium">{p.compania}</div>
-                      <div className="text-muted-foreground text-xs font-normal">
-                        {p.tipo} · {p.prima_anual}
-                      </div>
-                    </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {res.filas.map((fila, i) => (
-                  <TableRow key={i}>
-                    <TableCell className="align-top font-medium">
-                      {fila.concepto}
-                      {fila.observacion && (
-                        <div className="text-muted-foreground text-xs font-normal">
-                          {fila.observacion}
-                        </div>
-                      )}
-                    </TableCell>
-                    {fila.valores.map((v, j) => (
-                      <TableCell key={j} className="align-top">
-                        {v}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          {res.diferencias_clave.length > 0 && (
-            <Card>
-              <CardContent className="grid gap-2 pt-6">
-                <h3 className="text-sm font-medium">Diferencias clave</h3>
-                <ul className="text-muted-foreground grid list-disc gap-1 pl-5 text-sm">
-                  {res.diferencias_clave.map((d, i) => (
-                    <li key={i}>{d}</li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
-
-          {res.recomendacion && (
-            <Card>
-              <CardContent className="flex gap-3 pt-6">
-                <Lightbulb className="text-amber-500 mt-0.5 size-5 shrink-0" />
-                <div>
-                  <h3 className="text-sm font-medium">Recomendación (orientativa)</h3>
-                  <p className="text-muted-foreground mt-1 text-sm whitespace-pre-wrap">
-                    {res.recomendacion}
-                  </p>
+          <Card>
+            <CardContent className="grid gap-3 pt-6">
+              <h3 className="text-sm font-medium">Guardar para el cliente</h3>
+              {guardadaId ? (
+                <p className="text-sm">
+                  Guardada.{" "}
+                  <Link
+                    href={`/comparador/guardadas/${guardadaId}`}
+                    className="text-primary font-medium hover:underline"
+                  >
+                    Abrir y descargar el PDF
+                  </Link>
+                </p>
+              ) : (
+                <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto] sm:items-center">
+                  <Input
+                    value={titulo}
+                    onChange={(e) => setTitulo(e.target.value)}
+                    maxLength={200}
+                    placeholder="Título de la comparativa"
+                    aria-label="Título"
+                  />
+                  <div className="flex gap-2">
+                    <div className="min-w-0 flex-1">
+                      <ClienteCombobox
+                        value={clienteId}
+                        onValueChange={setClienteId}
+                        options={clientes}
+                        placeholder="Cliente (opcional)"
+                      />
+                    </div>
+                    {clienteId && (
+                      <Button variant="ghost" size="sm" onClick={() => setClienteId(null)}>
+                        Quitar
+                      </Button>
+                    )}
+                  </div>
+                  <Button onClick={guardar} disabled={guardando || !titulo.trim()}>
+                    {guardando ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Save className="size-4" />
+                    )}
+                    Guardar
+                  </Button>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              )}
+            </CardContent>
+          </Card>
 
-          <p className="text-muted-foreground text-xs">
-            Generado por IA a partir de los PDF. Revisa siempre el condicionado
-            original: puede haber matices que la extracción automática no capte.
-          </p>
+          <ComparativaView res={res} />
         </div>
       )}
     </div>

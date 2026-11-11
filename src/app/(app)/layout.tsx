@@ -24,7 +24,7 @@ export default async function AppLayout({
   return (
     <div className="flex min-h-svh">
       {/* Sidebar fija (desktop) */}
-      <aside className="bg-sidebar hidden w-64 shrink-0 flex-col border-r lg:flex">
+      <aside className="bg-sidebar hidden w-64 shrink-0 flex-col border-r lg:flex print:hidden">
         <div className="flex h-14 items-center gap-2 border-b px-5">
           <Link href="/" className="flex min-w-0 items-center gap-2 font-semibold">
             <span className="bg-primary text-primary-foreground flex size-7 shrink-0 items-center justify-center rounded-md">
@@ -43,16 +43,20 @@ export default async function AppLayout({
 
       {/* Columna principal */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar
-          email={user.email ?? "usuario"}
-          esAdmin={esAdmin}
-          correduriaNombre={correduriaNombre}
-        />
+        <div className="print:hidden">
+          <Topbar
+            email={user.email ?? "usuario"}
+            esAdmin={esAdmin}
+            correduriaNombre={correduriaNombre}
+          />
+        </div>
         <main className="flex-1 overflow-x-hidden p-4 md:p-6">{children}</main>
       </div>
 
       {/* Paleta de comandos global */}
-      <CommandMenu />
+      <div className="print:hidden">
+        <CommandMenu />
+      </div>
     </div>
   )
 }

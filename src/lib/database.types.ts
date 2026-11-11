@@ -120,6 +120,20 @@ export type SiniestroRow = Timestamps & {
   observaciones: string | null
 }
 
+export type ComparativaDatos = {
+  polizas: { etiqueta: string; compania: string; tipo: string; prima_anual: string }[]
+  filas: { concepto: string; valores: string[]; observacion: string }[]
+  diferencias_clave: string[]
+  recomendacion: string
+}
+
+export type ComparativaRow = Timestamps & {
+  correduria_id: string
+  cliente_id: string | null
+  titulo: string
+  datos: ComparativaDatos
+}
+
 export type CorreduriaRow = Timestamps & {
   nombre: string
   cif: string | null
@@ -162,6 +176,7 @@ export type Database = {
       tareas: TableConfig<TareaRow>
       documentos: TableConfig<DocumentoRow>
       siniestros: TableConfig<SiniestroRow>
+      comparativas: TableConfig<ComparativaRow>
       corredurias: TableConfig<CorreduriaRow>
       perfiles: TableConfig<PerfilRow>
       portal_accesos: TableConfig<PortalAccesoRow>

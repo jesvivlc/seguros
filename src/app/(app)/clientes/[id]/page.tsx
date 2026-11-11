@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { EstadoClienteBadge } from "@/components/badges"
 import { EliminarClienteButton } from "./eliminar-cliente-button"
 import { ClienteTabs } from "./cliente-tabs"
+import { ResumenIa } from "./resumen-ia"
 import { formatFecha } from "@/lib/format"
 import type {
   ClienteRow,
@@ -168,6 +169,8 @@ export default async function ClienteDetallePage({
 
         <EliminarClienteButton id={c.id} nombre={`${c.nombre} ${c.apellidos}`} />
       </div>
+
+      <ResumenIa clienteId={c.id} />
 
       <ClienteTabs
         clienteId={c.id}

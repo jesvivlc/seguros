@@ -8,6 +8,8 @@ import {
   Sparkles,
   Search,
   UserCog,
+  ClipboardCheck,
+  Calculator,
   type LucideIcon,
 } from "lucide-react"
 
@@ -27,6 +29,8 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/agenda", label: "Agenda", icon: CalendarDays, match: "/agenda" },
   { href: "/estadisticas", label: "Estadísticas", icon: BarChart3, match: "/estadisticas" },
   { href: "/comparador", label: "Comparador IA", icon: Sparkles, match: "/comparador" },
+  { href: "/simulador", label: "Simulador", icon: Calculator, match: "/simulador" },
+  { href: "/cierre", label: "Cierre trimestral", icon: ClipboardCheck, match: "/cierre" },
   { href: "/buscar", label: "Buscar", icon: Search, match: "/buscar" },
 ]
 
